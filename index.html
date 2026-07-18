@@ -1,0 +1,2282 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>MG Private Swimming - النظام المتكامل</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --mg-primary: #0a2e4a;
+            --mg-gold: #f6b93b;
+            --mg-bg: #eef2f7;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: var(--mg-bg); min-height: 100vh; padding-bottom: 40px; }
+        .mg-header {
+            background: linear-gradient(135deg, var(--mg-primary), #1a4a6b);
+            color: #fff;
+            padding: 16px 25px;
+            border-radius: 0 0 35px 35px;
+            margin-bottom: 25px;
+        }
+        .mg-header .logo-text .mg-icon {
+            background: var(--mg-gold);
+            color: var(--mg-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.2rem;
+        }
+        .mg-header .badge-gold {
+            background: var(--mg-gold);
+            color: var(--mg-primary);
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .tab-btn {
+            padding: 7px 18px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            transition: 0.2s;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 0.8rem;
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.25); }
+        .tab-btn.active { background: var(--mg-gold); color: var(--mg-primary); }
+        .glass-card {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(14px);
+            border-radius: 24px;
+            padding: 18px 14px;
+            height: 100%;
+        }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--mg-primary); }
+        .stat-label { font-size: 0.75rem; color: #4a5c6b; font-weight: 600; }
+        .pool-card-container {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 10px 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .pool-bar-bg { flex: 1; height: 8px; background: #e9ecef; border-radius: 60px; overflow: hidden; min-width: 60px; }
+        .pool-bar-fill { height: 100%; border-radius: 60px; transition: width 0.6s; }
+        .schedule-wrapper {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 18px 12px;
+            margin-top: 20px;
+        }
+        .table-schedule {
+            border-collapse: separate;
+            border-spacing: 3px;
+            width: 100%;
+        }
+        .table-schedule thead th {
+            background: var(--mg-primary);
+            color: #fff;
+            font-weight: 600;
+            padding: 8px 3px;
+            border-radius: 12px 12px 0 0;
+            font-size: 0.65rem;
+            text-align: center;
+        }
+        .table-schedule tbody td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 4px 2px;
+            border-radius: 12px;
+            min-width: 45px;
+            height: 60px;
+            background: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .table-schedule tbody tr td:first-child {
+            background: var(--mg-primary) !important;
+            color: #fff !important;
+            border-radius: 12px 0 0 12px;
+            font-size: 0.7rem;
+            min-width: 60px;
+            cursor: default;
+        }
+        .student-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0 8px;
+            border-radius: 30px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            margin: 1px;
+            white-space: nowrap;
+            color: inherit;
+        }
+        .cell-btn {
+            border: none;
+            background: rgba(0,0,0,0.06);
+            border-radius: 50%;
+            width: 20px; height: 20px;
+            font-size: 0.55rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.15s;
+            padding: 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-weight: 700;
+        }
+        .cell-btn:hover { background: rgba(0,0,0,0.2); }
+        .cell-btn.add-btn { background: rgba(46,204,113,0.2); }
+        .cell-btn.remove-btn { background: rgba(231,76,60,0.15); }
+        .legend {
+            display: flex; flex-wrap: wrap; gap: 10px 20px;
+            justify-content: center; margin-top: 14px;
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 60px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; font-weight: 600; }
+        .legend-color { width: 18px; height: 18px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06); }
+        .btn-mg-primary { background: var(--mg-primary); border: none; padding: 10px 22px; border-radius: 60px; color: #fff; font-weight: 700; width: 100%; }
+        .btn-mg-primary:hover { background: #1a4a6b; color: #fff; }
+        .btn-mg-gold { background: linear-gradient(135deg, var(--mg-gold), #f39c12); color: var(--mg-primary); border: none; padding: 10px 28px; border-radius: 60px; font-weight: 700; }
+        .btn-mg-gold:hover { transform: scale(1.02); }
+        .btn-mg-outline { background: transparent; border: 2px solid var(--mg-primary); color: var(--mg-primary); padding: 8px 18px; border-radius: 60px; font-weight: 700; }
+        .btn-mg-outline:hover { background: var(--mg-primary); color: #fff; }
+        .form-select {
+            appearance: auto !important;
+            -webkit-appearance: auto !important;
+            -moz-appearance: auto !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: left 1rem center !important;
+            background-size: 14px 10px !important;
+            padding: 10px 38px 10px 14px !important;
+            border-radius: 14px !important;
+            border: 1px solid #e2e8f0 !important;
+            font-size: 0.9rem !important;
+            background-color: #fff !important;
+            min-height: 44px !important;
+        }
+        .form-select option { padding: 10px 14px !important; font-size: 0.9rem !important; background: #fff !important; }
+        .form-select option:checked { background: var(--mg-gold) !important; color: var(--mg-primary) !important; }
+        .view-container { display: none; }
+        .view-container.active { display: block; }
+        .student-table-wrapper { overflow-x: auto; }
+        .student-search-box { max-width: 260px; }
+        .status-badge-active { background: #d4edda; color: #155724; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; }
+        .status-badge-inactive { background: #f8d7da; color: #721c24; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; }
+        .type-badge-p1 { background: #2ecc71; color: #fff; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
+        .type-badge-p2 { background: #5bc0de; color: #fff; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
+        .type-badge-g { background: #f1c40f; color: #2c3e50; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
+        .payment-badge-paid { background: #d4edda; color: #155724; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
+        .payment-badge-unpaid { background: #f8d7da; color: #721c24; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
+        .payment-badge-late { background: #fff3cd; color: #856404; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
+        .transaction-list { max-height: 350px; overflow-y: auto; }
+        .transaction-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; flex-wrap: wrap; gap: 4px; }
+        .coach-table td { vertical-align: middle; font-size: 0.85rem; }
+        .import-btn-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .import-btn-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .toast-container { z-index: 9999; }
+        .toast-custom { border-radius: 16px; background: var(--mg-primary); color: #fff; border: none; }
+        .login-container { max-width: 400px; margin: 80px auto; }
+        .user-role-badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 30px; }
+        .role-admin { background: #f6b93b; color: #0a2e4a; }
+        .role-coach { background: #2ecc71; color: #fff; }
+        .role-viewer { background: #3498db; color: #fff; }
+        .date-nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .date-nav-btn:hover { background: var(--mg-gold); color: var(--mg-primary); }
+        .log-entry { font-size: 0.8rem; border-bottom: 1px solid #f0f0f0; padding: 4px 0; }
+        .log-entry .badge { font-size: 0.6rem; }
+        @media (max-width: 768px) {
+            .table-schedule tbody td { min-width: 32px; height: 50px; padding: 2px; }
+            .table-schedule tbody tr td:first-child { min-width: 38px; font-size: 0.55rem; }
+            .student-tag { font-size: 0.45rem; padding: 0 4px; }
+            .cell-btn { width: 16px; height: 16px; font-size: 0.45rem; }
+            .stat-number { font-size: 1.3rem; }
+            .tab-btn { font-size: 0.65rem; padding: 5px 10px; }
+            .mg-header .logo-text .mg-icon { width: 32px; height: 32px; font-size: 0.9rem; }
+            .form-select { font-size: 0.8rem !important; padding: 8px 32px 8px 10px !important; min-height: 38px !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===================== تسجيل الدخول ===================== -->
+<div id="loginPage" class="container">
+    <div class="login-container">
+        <div class="text-center mb-4">
+            <div style="width:70px;height:70px;margin:0 auto;background:var(--mg-gold);color:var(--mg-primary);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;">MG</div>
+            <h3 class="mt-3">MG Private Swimming</h3>
+            <p class="text-muted">نظام الإدارة المتكامل</p>
+        </div>
+        <div class="glass-card">
+            <div class="mb-3">
+                <label class="form-label fw-bold">اسم المستخدم</label>
+                <input type="text" class="form-control" id="loginUsername" placeholder="أدخل اسم المستخدم" value="admin">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">كلمة المرور</label>
+                <input type="password" class="form-control" id="loginPassword" placeholder="أدخل كلمة المرور" value="admin123">
+            </div>
+            <button class="btn btn-mg-gold w-100" onclick="loginUser()"><i class="bi bi-box-arrow-in-right"></i> دخول</button>
+            <div class="mt-3 text-center text-muted small">
+                <span>المستخدم الافتراضي: <strong>admin</strong> | كلمة المرور: <strong>admin123</strong></span><br>
+                <span class="text-muted" style="font-size:0.7rem;">(صلاحيات: مدير كامل)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== النظام الرئيسي ===================== -->
+<div id="mainApp" style="display:none;">
+
+<header class="mg-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="logo-text">
+                    <span class="mg-icon">MG</span>
+                    <span style="font-weight:800;">Private Swimming</span>
+                </div>
+                <p class="m-0 opacity-75" style="font-size:0.8rem; margin-top:2px;">
+                    <i class="bi bi-person-circle"></i> مرحباً <span id="currentUserName"></span>
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-calendar3"></i> <span id="currentDateDisplay"></span>
+                    <span class="mx-2">|</span>
+                    <span class="badge" id="userRoleBadge"></span>
+                </p>
+            </div>
+            <div class="col-md-8 mt-2 mt-md-0">
+                <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                    <span class="badge-gold"><i class="bi bi-shield-check"></i> <span id="userRoleDisplay">مدير عام</span></span>
+                    <button class="tab-btn active" onclick="switchView('daily')" id="tabDaily">📅 يومي</button>
+                    <button class="tab-btn" onclick="switchView('weekly')" id="tabWeekly">📆 أسبوعي</button>
+                    <button class="tab-btn" onclick="switchView('students')" id="tabStudents">🏊 السباحين</button>
+                    <button class="tab-btn" onclick="switchView('accounts')" id="tabAccounts">💰 الحسابات</button>
+                    <button class="tab-btn" onclick="switchView('coaches')" id="tabCoaches">👨‍🏫 المدربين</button>
+                    <button class="tab-btn" onclick="switchView('users')" id="tabUsers" style="display:none;">👥 المستخدمين</button>
+                    <button class="btn btn-sm btn-outline-light" onclick="logoutUser()"><i class="bi bi-box-arrow-right"></i> خروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- شريط كارت الماية -->
+    <div class="pool-card-container mb-3">
+        <i class="bi bi-credit-card-2-front fs-5" style="color:var(--mg-primary);"></i>
+        <span class="pool-text">كارت الماية</span>
+        <div class="pool-bar-bg">
+            <div class="pool-bar-fill" id="poolBarFill" style="width:75%;background:linear-gradient(90deg,#2ecc71,#27ae60);"></div>
+        </div>
+        <span class="pool-text" id="poolTextDisplay">75 / 100 ساعة</span>
+        <span class="badge bg-light text-dark p-1" id="poolStatusBadge">متبقي 75%</span>
+    </div>
+
+    <!-- الكروت -->
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="glass-card text-center">
+                <i class="bi bi-people-fill fs-4" style="color:var(--mg-primary);"></i>
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">السباحين النشطين</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card text-center">
+                <i class="bi bi-cash-stack fs-4" style="color:#27ae60;"></i>
+                <div class="stat-number" id="totalRevenue">ج.م 0</div>
+                <div class="stat-label">إجمالي الإيرادات</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card text-center">
+                <i class="bi bi-receipt fs-4" style="color:#e74c3c;"></i>
+                <div class="stat-number" id="totalExpense">ج.م 0</div>
+                <div class="stat-label">إجمالي المصروفات</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card text-center" style="border:2px solid var(--mg-gold);">
+                <i class="bi bi-graph-up-arrow fs-4" style="color:var(--mg-gold);"></i>
+                <div class="stat-number" id="netProfit" style="color:#27ae60;">ج.م 0</div>
+                <div class="stat-label">صافي الربح</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== اليومي (مع اختيار التاريخ) ===================== -->
+    <div class="view-container active" id="dailyView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary"></i> جدول اليوم</h6>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="date-nav-btn" onclick="changeDailyDate(-1)"><i class="bi bi-chevron-right"></i></button>
+                        <input type="date" class="form-control form-control-sm" id="dailyDatePicker" style="max-width:160px;min-width:130px;" onchange="renderDaily()">
+                        <button class="date-nav-btn" onclick="changeDailyDate(1)"><i class="bi bi-chevron-left"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="setDailyDateToday()">اليوم</button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="openExceptionModal()"><i class="bi bi-pencil-square"></i> تعديل اليوم</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="openAttendanceModal()"><i class="bi bi-check2-square"></i> تسجيل حضور</button>
+                    <span class="badge bg-secondary p-2"><i class="bi bi-info-circle"></i> اضغط على خلية</span>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-schedule" id="dailyTable">
+                    <thead id="dailyHead"></thead>
+                    <tbody id="dailyBody"></tbody>
+                </table>
+            </div>
+            <div class="legend">
+                <span class="legend-item"><span class="legend-color" style="background:#ffffff;border:1px solid #ccc;"></span> متاح</span>
+                <span class="legend-item"><span class="legend-color" style="background:#4a4a4a;"></span> غير متاح</span>
+                <span class="legend-item"><span class="legend-color" style="background:#2ecc71;"></span> برايفت 1</span>
+                <span class="legend-item"><span class="legend-color" style="background:#5bc0de;"></span> برايفت 2</span>
+                <span class="legend-item"><span class="legend-color" style="background:#f1c40f;"></span> جروب</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== الأسبوعي ===================== -->
+    <div class="view-container" id="weeklyView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-calendar-week text-primary"></i> الجدول الأسبوعي</h6>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <label class="fw-bold" style="font-size:0.75rem;">المدرب:</label>
+                    <select class="form-select form-select-sm weekly-coach-selector" id="weeklyCoachSelect" onchange="renderWeekly()"></select>
+                    <button class="btn btn-sm btn-outline-danger" onclick="clearWeeklyTemplate()"><i class="bi bi-trash"></i> مسح الكل</button>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="table-schedule" id="weeklyTable">
+                    <thead id="weeklyHead"></thead>
+                    <tbody id="weeklyBody"></tbody>
+                </table>
+            </div>
+            <div class="legend">
+                <span class="legend-item"><span class="legend-color" style="background:#ffffff;border:1px solid #ccc;"></span> متاح</span>
+                <span class="legend-item"><span class="legend-color" style="background:#4a4a4a;"></span> غير متاح</span>
+                <span class="legend-item"><span class="legend-color" style="background:#2ecc71;"></span> برايفت 1</span>
+                <span class="legend-item"><span class="legend-color" style="background:#5bc0de;"></span> برايفت 2</span>
+                <span class="legend-item"><span class="legend-color" style="background:#f1c40f;"></span> جروب</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== السباحين ===================== -->
+    <div class="view-container" id="studentsView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary"></i> إدارة السباحين</h6>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <input type="text" class="form-control form-control-sm student-search-box" id="studentSearchInput" placeholder="🔍 بحث بالاسم..." oninput="filterStudents()">
+                    <select class="form-select form-select-sm" id="paymentFilter" onchange="filterStudents()" style="max-width:120px;">
+                        <option value="all">الكل</option>
+                        <option value="paid">مدفوع</option>
+                        <option value="unpaid">غير مدفوع</option>
+                        <option value="late">متأخر</option>
+                    </select>
+                    <button class="btn btn-mg-gold btn-sm" onclick="openAddStudentModal()"><i class="bi bi-plus-circle"></i> إضافة</button>
+                </div>
+            </div>
+            <div class="student-table-wrapper">
+                <table class="table table-hover table-striped" id="studentsTable" style="background: rgba(255,255,255,0.6); border-radius: 16px; overflow: hidden; font-size:0.85rem;">
+                    <thead style="background: var(--mg-primary); color: #fff;">
+                        <tr><th>#</th><th>الاسم</th><th>التليفون</th><th>المستوى</th><th>النوع</th><th>الكابتن</th><th>المبلغ</th><th>حالة الدفع</th><th>طريقة الدفع</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody id="studentsTableBody"></tbody>
+                </table>
+            </div>
+            <div class="text-muted text-center mt-2 small" id="studentsCountDisplay">عرض 0 سباح</div>
+        </div>
+    </div>
+
+    <!-- ===================== الحسابات ===================== -->
+    <div class="view-container" id="accountsView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-cash-stack text-primary"></i> كشف الحساب</h6>
+                <div class="d-flex gap-2 flex-wrap">
+                    <select class="form-select form-select-sm" id="transactionFilter" onchange="renderTransactions()" style="max-width:120px;">
+                        <option value="all">الكل</option>
+                        <option value="revenue">إيرادات</option>
+                        <option value="expense">مصروفات</option>
+                    </select>
+                    <button class="btn btn-sm btn-mg-outline" onclick="renderTransactions()"><i class="bi bi-arrow-repeat"></i></button>
+                    <button class="btn btn-sm btn-mg-gold" onclick="exportMonthlyReport()"><i class="bi bi-file-earmark-spreadsheet"></i> تقرير شهري</button>
+                    <button class="btn btn-sm btn-mg-outline" onclick="exportTransactions()"><i class="bi bi-download"></i> تصدير</button>
+                    <div class="import-btn-wrapper">
+                        <button class="btn btn-sm btn-mg-primary"><i class="bi bi-upload"></i> استعادة</button>
+                        <input type="file" id="importFileInput" accept=".json" onchange="importData(event)">
+                    </div>
+                </div>
+            </div>
+            <div class="row g-2 mb-2">
+                <div class="col-md-4"><div class="glass-card"><h6 class="fw-bold" style="font-size:0.8rem;">إجمالي الإيرادات</h6><h5 class="text-success" id="accTotalRevenue">ج.م 0</h5></div></div>
+                <div class="col-md-4"><div class="glass-card"><h6 class="fw-bold" style="font-size:0.8rem;">إجمالي المصروفات</h6><h5 class="text-danger" id="accTotalExpense">ج.م 0</h5></div></div>
+                <div class="col-md-4"><div class="glass-card"><h6 class="fw-bold" style="font-size:0.8rem;">صافي الربح</h6><h5 id="accNetProfit">ج.م 0</h5></div></div>
+            </div>
+            <div class="transaction-list" id="transactionList"></div>
+        </div>
+    </div>
+
+    <!-- ===================== المدربين ===================== -->
+    <div class="view-container" id="coachesView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-person-badge text-primary"></i> بيانات المدربين</h6>
+                <button class="btn btn-sm btn-mg-outline" onclick="renderCoaches()"><i class="bi bi-arrow-repeat"></i> تحديث</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped coach-table" style="background: rgba(255,255,255,0.6); border-radius: 16px; overflow: hidden; font-size:0.8rem;">
+                    <thead style="background: var(--mg-primary); color: #fff;">
+                        <tr>
+                            <th>#</th><th>الاسم</th><th>التليفون</th><th>الخبرة</th><th>بداية العمل</th><th>التقييم</th>
+                            <th>ساعات مشتغلة</th><th>ساعات متاحة</th><th>المستحقات الفعلية</th><th>الراتب المتوقع</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coachesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== المستخدمين ===================== -->
+    <div class="view-container" id="usersView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-people text-primary"></i> إدارة المستخدمين</h6>
+                <button class="btn btn-mg-gold btn-sm" onclick="openAddUserModal()"><i class="bi bi-plus-circle"></i> إضافة مستخدم</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" style="background: rgba(255,255,255,0.6); border-radius: 16px; overflow: hidden; font-size:0.85rem;">
+                    <thead style="background: var(--mg-primary); color: #fff;">
+                        <tr><th>#</th><th>اسم المستخدم</th><th>الاسم الكامل</th><th>الدور</th><th>الكابتن المرتبط</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- أزرار سريعة -->
+    <div class="row g-2 mt-3">
+        <div class="col-md-3"><button class="btn btn-mg-primary" data-bs-toggle="modal" data-bs-target="#attendanceModal"><i class="bi bi-check2-square"></i> تسجيل حضور</button></div>
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#27ae60;" data-bs-toggle="modal" data-bs-target="#financeModal"><i class="bi bi-wallet2"></i> إيراد / مصروف</button></div>
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#e67e22;" onclick="calculateSalaries()"><i class="bi bi-cash-coin"></i> محاسبة المدربين</button></div>
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#8e44ad;" onclick="exportAllData()"><i class="bi bi-file-earmark-spreadsheet"></i> نسخة احتياطية</button></div>
+    </div>
+</div>
+
+<!-- ===================== مودالات ===================== -->
+
+<!-- إضافة سباح -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-person-plus text-success"></i> إضافة سباح</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-2"><label class="form-label fw-bold">الاسم *</label><input type="text" class="form-control" id="newStudentName"></div>
+                <div class="mb-2"><label class="form-label fw-bold">التليفون</label><input type="text" class="form-control" id="newStudentPhone"></div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label fw-bold">المستوى</label><select class="form-select" id="newStudentLevel"><option value="مبتدئ">مبتدئ</option><option value="متوسط" selected>متوسط</option><option value="متقدم">متقدم</option></select></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">النوع</label><select class="form-select" id="newStudentType"><option value="private1">برايفت 1</option><option value="private2">برايفت 2</option><option value="group">جروب</option></select></div>
+                </div>
+                <div class="mb-2 mt-2"><label class="form-label fw-bold">الكابتن</label><select class="form-select" id="newStudentCoach"></select></div>
+                <div class="mb-2"><label class="form-label fw-bold">المبلغ الشهري</label><input type="number" class="form-control" id="newStudentFee" value="0"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="addNewStudent()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- تسجيل دفع -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-cash text-success"></i> تسجيل دفع</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="paymentStudentId">
+                <div class="mb-2"><label class="form-label fw-bold">السباح</label><input type="text" class="form-control" id="paymentStudentName" disabled></div>
+                <div class="mb-2"><label class="form-label fw-bold">المبلغ</label><input type="number" class="form-control" id="paymentAmount"></div>
+                <div class="mb-2"><label class="form-label fw-bold">طريقة الدفع</label><select class="form-select" id="paymentMethod"><option value="كاش">كاش</option><option value="إنستا باي">إنستا باي</option></select></div>
+                <div class="mb-2"><label class="form-label fw-bold">سجل الدفعات</label><div id="paymentHistoryList" class="border rounded p-2 bg-light"></div></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" style="background:#27ae60;" onclick="recordPayment()">تسجيل</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- تعديل المبلغ -->
+<div class="modal fade" id="editFeeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-pencil-square text-warning"></i> تعديل المبلغ</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editFeeStudentId">
+                <div class="mb-2"><label class="form-label fw-bold">السباح</label><input type="text" class="form-control" id="editFeeStudentName" disabled></div>
+                <div class="mb-2"><label class="form-label fw-bold">المبلغ الجديد</label><input type="number" class="form-control" id="editFeeAmount"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveFeeEdit()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- التحكم في الخلية -->
+<div class="modal fade" id="cellControlModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-sliders2 text-primary"></i> التحكم في الخلية</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-2"><label class="form-label fw-bold">نوع الحصة</label><select class="form-select" id="cellTypeSelect"><option value="available">🟢 متاح</option><option value="unavailable">🔴 غير متاح</option><option value="private1">🟢 برايفت 1</option><option value="private2">🔵 برايفت 2</option><option value="group">🟡 جروب</option></select></div>
+                <div class="mb-2"><label class="form-label fw-bold">اختر السباحين</label><select class="form-select" id="cellStudentSelect" multiple size="4"></select></div>
+                <input type="hidden" id="cellTargetKey"><input type="hidden" id="cellTargetView" value="daily">
+                <input type="hidden" id="cellWeeklyCoachIdx" value="0"><input type="hidden" id="cellWeeklyDayIdx" value="0"><input type="hidden" id="cellWeeklyHourIdx" value="0">
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveCellControl()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- تعديلات اليوم -->
+<div class="modal fade" id="exceptionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">📝 تعديلات اليوم</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><div id="exceptionList"></div></div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- تسجيل الحضور -->
+<div class="modal fade" id="attendanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">📋 تسجيل الحضور</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4"><label class="fw-bold" style="font-size:0.8rem;">اليوم</label><input type="date" class="form-control" id="attendanceDate"></div>
+                    <div class="col-md-4"><label class="fw-bold" style="font-size:0.8rem;">المدرب</label><select class="form-select" id="attendanceCoachFilter"><option value="all">الكل</option></select></div>
+                    <div class="col-md-4"><label class="fw-bold" style="font-size:0.8rem;">الساعة</label><select class="form-select" id="attendanceHourFilter"><option value="all">الكل</option></select></div>
+                </div>
+                <div id="attendanceList" style="max-height:350px;overflow-y:auto;"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- إيراد / مصروف -->
+<div class="modal fade" id="financeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">💰 إيراد / مصروف</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">النوع</label><select class="form-select" id="financeType"><option value="revenue">إيراد</option><option value="expense">مصروف</option></select></div>
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">التصنيف</label><select class="form-select" id="financeCategory"><option value="اشتراك شهرى">اشتراك</option><option value="إيجار مايه">إيجار مايه</option><option value="رواتب مدربين">رواتب</option><option value="أخرى">أخرى</option></select></div>
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">المبلغ</label><input type="number" class="form-control" id="financeAmount"></div>
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">البيان</label><input type="text" class="form-control" id="financeDesc"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveFinance()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- إضافة مستخدم -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-person-plus text-primary"></i> إضافة مستخدم</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-2"><label class="form-label fw-bold">اسم المستخدم *</label><input type="text" class="form-control" id="newUsername"></div>
+                <div class="mb-2"><label class="form-label fw-bold">الاسم الكامل *</label><input type="text" class="form-control" id="newUserFullName"></div>
+                <div class="mb-2"><label class="form-label fw-bold">كلمة المرور *</label><input type="password" class="form-control" id="newUserPassword"></div>
+                <div class="mb-2"><label class="form-label fw-bold">الدور</label><select class="form-select" id="newUserRole" onchange="toggleCoachSelect()">
+                    <option value="admin">مدير</option>
+                    <option value="coach">كابتن</option>
+                    <option value="viewer">مشاهد</option>
+                </select></div>
+                <div class="mb-2" id="coachSelectWrapper"><label class="form-label fw-bold">الكابتن المرتبط</label><select class="form-select" id="newUserCoach"></select></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="addNewUser()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+<script>
+    // ========================================================================
+    // 1. إعداد Supabase - مع try-catch لمنع الخطأ
+    // ========================================================================
+    const SUPABASE_URL = 'https://bddbiaxptpeiszqolmzl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkZGJpYXhwdHBlaXN6cW9sbXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMTE3MDQsImV4cCI6MjA5OTg4NzcwNH0.gHNUGQOIfWe6rZHhyvfkvFQ8_RsLQUAEQcGWxkEa9Jk';
+
+    var supabaseClient = null;
+    try {
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+    } catch (e) {
+        console.error('Supabase init error:', e);
+    }
+    // Retry after CDN might load
+    setTimeout(function() {
+        if (!supabaseClient && typeof supabase !== 'undefined') {
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch(e) { console.error('Supabase retry failed:', e); }
+        }
+    }, 2000);
+
+    // ========================================================================
+    // 2. المتغيرات العامة
+    // ========================================================================
+    const DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const HOURS = ['8 ص', '9 ص', '10 ص', '11 ص', '12 م', '1 م', '2 م', '3 م', '4 م', '5 م', '6 م', '7 م', '8 م', '9 م', '10 م'];
+
+    let currentUser = null;
+    let dailyViewDate = null;
+
+    // بيانات محلية مؤقتة (سيتم تحميلها من Supabase)
+    let students = [];
+    let coaches = [];
+    let attendanceLogs = [];
+    let transactions = [];
+    let poolCard = { total: 100, remaining: 100 };
+    let weeklyTemplate = {};
+    let dailyExceptions = {};
+    let users = [];
+
+    // ========================================================================
+    // 3. دوال مساعدة
+    // ========================================================================
+    function getToday() { return new Date().toISOString().split('T')[0]; }
+    function getTodayDayName() { return DAYS[new Date().getDay()]; }
+    function formatCurrency(amount) { return `ج.م ${Number(amount).toLocaleString()}`; }
+
+    function showToast(message, type = 'success') {
+        const container = document.querySelector('.toast-container');
+        const colors = { success: '#27ae60', danger: '#e74c3c', info: '#2980b9', warning: '#f39c12' };
+        const bg = colors[type] || '#0a2e4a';
+        const html = `
+            <div class="toast align-items-center show toast-custom" role="alert" style="background:${bg};">
+                <div class="d-flex"><div class="toast-body fw-bold">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+        setTimeout(() => { const t = container.querySelector('.toast'); if(t) t.remove(); }, 3500);
+    }
+
+    // ========================================================================
+    // 4. دوال جلب البيانات من Supabase
+    // ========================================================================
+    async function loadStudents() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return []; }
+            const { data, error } = await supabaseClient.from('students').select('*');
+            if (error) { console.error('Error loading students:', error); return []; }
+            return data || [];
+        } catch (e) { console.error('Exception loading students:', e); return []; }
+    }
+
+    async function loadCoaches() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return []; }
+            const { data, error } = await supabaseClient.from('coaches').select('*');
+            if (error) { console.error('Error loading coaches:', error); return []; }
+            return data || [];
+        } catch (e) { console.error('Exception loading coaches:', e); return []; }
+    }
+
+    async function loadAttendance() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return []; }
+            const { data, error } = await supabaseClient.from('attendance_logs').select('*');
+            if (error) { console.error('Error loading attendance:', error); return []; }
+            return data || [];
+        } catch (e) { console.error('Exception loading attendance:', e); return []; }
+    }
+
+    async function loadTransactions() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return []; }
+            const { data, error } = await supabaseClient.from('transactions').select('*');
+            if (error) { console.error('Error loading transactions:', error); return []; }
+            return data || [];
+        } catch (e) { console.error('Exception loading transactions:', e); return []; }
+    }
+
+    async function loadPoolCard() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return { total: 100, remaining: 100 }; }
+            const { data, error } = await supabaseClient.from('pool_card').select('*').order('id', { ascending: false }).limit(1);
+            if (error) { console.error('Error loading pool card:', error); return { total: 100, remaining: 100 }; }
+            return data && data.length > 0 ? data[0] : { total: 100, remaining: 100 };
+        } catch (e) { console.error('Exception loading pool card:', e); return { total: 100, remaining: 100 }; }
+    }
+
+    async function loadUsers() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return []; }
+            const { data, error } = await supabaseClient.from('users').select('*');
+            if (error) { console.error('Error loading users:', error); return []; }
+            return data || [];
+        } catch (e) { console.error('Exception loading users:', e); return []; }
+    }
+
+    async function loadWeeklyTemplate() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return {}; }
+            const { data, error } = await supabaseClient.from('weekly_template').select('*');
+            if (error) { console.error('Error loading weekly template:', error); return {}; }
+            const result = {};
+            (data || []).forEach(row => {
+                const key = `${row.coach_id}_${row.day_of_week}_${row.hour_slot}`;
+                result[key] = {
+                    students: row.student_ids || [],
+                    isUnavailable: row.is_unavailable || false,
+                    type: row.type || null
+                };
+            });
+            return result;
+        } catch (e) { console.error('Exception loading weekly template:', e); return {}; }
+    }
+
+    async function loadDailyExceptions() {
+        try {
+            if (!supabaseClient) { console.warn('Supabase not initialized'); return {}; }
+            const { data, error } = await supabaseClient.from('daily_exceptions').select('*');
+            if (error) { console.error('Error loading daily exceptions:', error); return {}; }
+            const result = {};
+            (data || []).forEach(row => {
+                const key = `${row.coach_id}_${row.hour_slot}`;
+                result[key] = {
+                    students: row.student_ids || [],
+                    isUnavailable: row.is_unavailable || false,
+                    type: row.type || null,
+                    note: row.note || ''
+                };
+            });
+            return result;
+        } catch (e) { console.error('Exception loading daily exceptions:', e); return {}; }
+    }
+
+    // ========================================================================
+    // 5. دوال حفظ البيانات في Supabase
+    // ========================================================================
+    async function addStudentToDB(studentData) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return null; }
+            const { data, error } = await supabaseClient.from('students').insert([studentData]).select();
+            if (error) { console.error('Error adding student:', error); showToast('❌ فشل إضافة السباح: ' + error.message, 'danger'); return null; }
+            return data && data.length > 0 ? data[0] : null;
+        } catch (e) { console.error('Exception adding student:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return null; }
+    }
+
+    async function updateStudentInDB(id, updates) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('students').update(updates).eq('id', id);
+            if (error) { console.error('Error updating student:', error); showToast('❌ فشل تحديث السباح: ' + error.message, 'danger'); return false; }
+            return true;
+        } catch (e) { console.error('Exception updating student:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return false; }
+    }
+
+    async function deleteStudentFromDB(id) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('students').delete().eq('id', id);
+            if (error) { console.error('Error deleting student:', error); showToast('❌ فشل حذف السباح: ' + error.message, 'danger'); return false; }
+            return true;
+        } catch (e) { console.error('Exception deleting student:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return false; }
+    }
+
+    async function addAttendanceToDB(logData) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return null; }
+            const { data, error } = await supabaseClient.from('attendance_logs').insert([logData]).select();
+            if (error) { console.error('Error adding attendance:', error); showToast('❌ فشل تسجيل الحضور: ' + error.message, 'danger'); return null; }
+            return data && data.length > 0 ? data[0] : null;
+        } catch (e) { console.error('Exception adding attendance:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return null; }
+    }
+
+    async function addTransactionToDB(transData) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return null; }
+            const { data, error } = await supabaseClient.from('transactions').insert([transData]).select();
+            if (error) { console.error('Error adding transaction:', error); showToast('❌ فشل إضافة المعاملة: ' + error.message, 'danger'); return null; }
+            return data && data.length > 0 ? data[0] : null;
+        } catch (e) { console.error('Exception adding transaction:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return null; }
+    }
+
+    async function addUserToDB(userData) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return null; }
+            const { data, error } = await supabaseClient.from('users').insert([userData]).select();
+            if (error) { console.error('Error adding user:', error); showToast('❌ فشل إضافة المستخدم: ' + error.message, 'danger'); return null; }
+            return data && data.length > 0 ? data[0] : null;
+        } catch (e) { console.error('Exception adding user:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return null; }
+    }
+
+    async function deleteUserFromDB(id) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('users').delete().eq('id', id);
+            if (error) { console.error('Error deleting user:', error); showToast('❌ فشل حذف المستخدم: ' + error.message, 'danger'); return false; }
+            return true;
+        } catch (e) { console.error('Exception deleting user:', e); showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger'); return false; }
+    }
+
+    async function updatePoolCardInDB(updates) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { data: existing } = await supabaseClient.from('pool_card').select('id').limit(1);
+            if (existing && existing.length > 0) {
+                const { error } = await supabaseClient.from('pool_card').update(updates).eq('id', existing[0].id);
+                if (error) { console.error('Error updating pool card:', error); return false; }
+                return true;
+            } else {
+                const { error } = await supabaseClient.from('pool_card').insert([{ ...updates, purchase_date: new Date().toISOString().split('T')[0] }]);
+                if (error) { console.error('Error inserting pool card:', error); return false; }
+                return true;
+            }
+        } catch (e) { console.error('Exception updating pool card:', e); return false; }
+    }
+
+    async function upsertWeeklyTemplate(data) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('weekly_template').upsert([data], { onConflict: 'coach_id, day_of_week, hour_slot' });
+            if (error) { console.error('Error upserting weekly template:', error); return false; }
+            return true;
+        } catch (e) { console.error('Exception upserting weekly template:', e); return false; }
+    }
+
+    async function upsertDailyException(data) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('daily_exceptions').upsert([data], { onConflict: 'coach_id, exception_date, hour_slot' });
+            if (error) { console.error('Error upserting daily exception:', error); return false; }
+            return true;
+        } catch (e) { console.error('Exception upserting daily exception:', e); return false; }
+    }
+
+    async function deleteDailyException(coachId, date, hourSlot) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('daily_exceptions').delete()
+                .eq('coach_id', coachId)
+                .eq('exception_date', date)
+                .eq('hour_slot', hourSlot);
+            if (error) { console.error('Error deleting daily exception:', error); return false; }
+            return true;
+        } catch (e) { console.error('Exception deleting daily exception:', e); return false; }
+    }
+
+    // ========================================================================
+    // 6. دوال تسجيل الدخول والخروج
+    // ========================================================================
+    async function loginUser() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+
+        if (!username || !password) {
+            showToast('✋ أدخل اسم المستخدم وكلمة المرور', 'danger');
+            return;
+        }
+
+        if (!supabaseClient) {
+            showToast('❌ Supabase غير متصل. تأكد من تحميل المكتبة', 'danger');
+            return;
+        }
+
+        try {
+            const usersList = await loadUsers();
+            const user = usersList.find(u => u.username === username && u.password === password);
+
+            if (!user) {
+                showToast('❌ اسم المستخدم أو كلمة المرور غير صحيحة', 'danger');
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('currentUserName').innerText = user.full_name;
+            document.getElementById('userRoleDisplay').innerText = user.role === 'admin' ? 'مدير عام' : user.role === 'coach' ? 'كابتن' : 'مشاهد';
+            document.getElementById('userRoleBadge').innerHTML = user.role === 'admin' ? '<span class="badge role-admin">مدير</span>' :
+                                                                  user.role === 'coach' ? '<span class="badge role-coach">كابتن</span>' :
+                                                                  '<span class="badge role-viewer">مشاهد</span>';
+
+            if (user.role === 'admin') {
+                document.getElementById('tabUsers').style.display = 'inline-block';
+            } else {
+                document.getElementById('tabUsers').style.display = 'none';
+            }
+
+            await loadAllData();
+            showToast(`👋 مرحباً ${user.full_name}`, 'success');
+        } catch (e) {
+            console.error('Login error:', e);
+            showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'danger');
+        }
+    }
+
+    async function loadAllData() {
+        try {
+            students = await loadStudents();
+            coaches = await loadCoaches();
+            attendanceLogs = await loadAttendance();
+            transactions = await loadTransactions();
+            poolCard = await loadPoolCard();
+            users = await loadUsers();
+            weeklyTemplate = await loadWeeklyTemplate();
+            dailyExceptions = await loadDailyExceptions();
+
+            if (!dailyViewDate) dailyViewDate = getToday();
+            document.getElementById('dailyDatePicker').value = dailyViewDate;
+
+            renderDaily();
+            renderWeekly();
+            renderStudents();
+            renderTransactions();
+            renderCoaches();
+            renderUsers();
+            updateStatsAndCharts();
+        } catch (e) {
+            console.error('Error loading data:', e);
+            showToast('❌ خطأ في تحميل البيانات', 'danger');
+        }
+    }
+
+    function logoutUser() {
+        currentUser = null;
+        document.getElementById('loginPage').style.display = 'block';
+        document.getElementById('mainApp').style.display = 'none';
+        showToast('👋 تم تسجيل الخروج', 'info');
+    }
+
+    // ========================================================================
+    // 7. دوال العرض
+    // ========================================================================
+
+    // 7.1 عرض اليومي
+    function renderDaily() {
+        const thead = document.getElementById('dailyHead');
+        const tbody = document.getElementById('dailyBody');
+        thead.innerHTML = ''; tbody.innerHTML = '';
+        const date = document.getElementById('dailyDatePicker').value || getToday();
+        dailyViewDate = date;
+        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
+        const todayDayIdx = DAYS.indexOf(dayName);
+        if (todayDayIdx === -1) return;
+
+        let headerRow = document.createElement('tr');
+        let thFirst = document.createElement('th');
+        thFirst.innerHTML = `المدربين (${dayName})`;
+        thFirst.style.borderRadius = '15px 0 0 0';
+        headerRow.appendChild(thFirst);
+        HOURS.forEach((hour) => {
+            let th = document.createElement('th');
+            th.innerHTML = `${hour}`;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+
+        const coachNames = coaches.map(c => c.name);
+
+        coachNames.forEach((coach, cIdx) => {
+            const tr = document.createElement('tr');
+            const tdName = document.createElement('td');
+            tdName.innerHTML = `${coach}`;
+            tr.appendChild(tdName);
+
+            const coachId = coaches[cIdx]?.id || cIdx;
+            const hours = getCoachHoursFromTemplate(coachId);
+            const slots = getCoachSlotsFromTemplate(coachId);
+
+            HOURS.forEach((hour, hIdx) => {
+                const td = document.createElement('td');
+                const hourIndexInCoach = hours.indexOf(hour);
+                if (hourIndexInCoach === -1) {
+                    td.style.backgroundColor = '#e9ecef';
+                    td.style.color = '#adb5bd';
+                    td.innerHTML = `<span style="font-size:0.5rem;">-</span>`;
+                    td.style.cursor = 'default';
+                } else {
+                    const key = `${coachId}_${hIdx}`;
+                    let data = dailyExceptions[key] || null;
+                    if (!data) {
+                        const slotKey = `${coachId}_${todayDayIdx}_${hourIndexInCoach}`;
+                        data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
+                    }
+                    let bgColor = '#ffffff', textColor = '#1a1a1a';
+                    if (data.isUnavailable) { bgColor = '#4a4a4a'; textColor = '#f0f0f0'; }
+                    else if (data.type === 'private1') { bgColor = '#2ecc71'; textColor = '#fff'; }
+                    else if (data.type === 'private2') { bgColor = '#5bc0de'; textColor = '#fff'; }
+                    else if (data.type === 'group') { bgColor = '#f1c40f'; textColor = '#2c3e50'; }
+                    td.style.backgroundColor = bgColor;
+                    td.style.color = textColor;
+
+                    let studentsHtml = '';
+                    if (data.students && data.students.length > 0) {
+                        data.students.forEach((name, idx) => {
+                            studentsHtml += `<span class="student-tag">${name} <span class="cell-btn remove-btn" onclick="event.stopPropagation(); removeDailyStudent('${key}', ${idx})" style="width:14px;height:14px;font-size:0.4rem;border-radius:50%;background:rgba(0,0,0,0.15);">✕</span></span>`;
+                        });
+                    }
+                    const addBtn = `<span class="cell-btn add-btn" onclick="event.stopPropagation(); openCellControl('${key}', 'daily')" title="التحكم">➕</span>`;
+                    const exceptionBtn = `<span class="cell-btn" style="background:rgba(52,152,219,0.2);" onclick="event.stopPropagation(); openExceptionForCell('${key}')" title="تعديل اليوم">📝</span>`;
+
+                    td.onclick = function(e) { if (e.target.closest('.cell-btn')) return; openCellControl(key, 'daily'); };
+                    td.innerHTML = `
+                        <div class="cell-content">
+                            <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1px;">${studentsHtml}</div>
+                            <div class="cell-actions">${addBtn} ${exceptionBtn}</div>
+                        </div>
+                    `;
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    function getCoachHoursFromTemplate(coachId) {
+        const hoursSet = new Set();
+        Object.keys(weeklyTemplate).forEach(key => {
+            const parts = key.split('_');
+            if (parseInt(parts[0]) === coachId) {
+                const hourIdx = parseInt(parts[2]);
+                if (hourIdx < HOURS.length) hoursSet.add(HOURS[hourIdx]);
+            }
+        });
+        return Array.from(hoursSet).length > 0 ? Array.from(hoursSet) : [...HOURS];
+    }
+
+    function getCoachSlotsFromTemplate(coachId) {
+        const slots = {};
+        Object.keys(weeklyTemplate).forEach(key => {
+            const parts = key.split('_');
+            if (parseInt(parts[0]) === coachId) {
+                const dayIdx = parseInt(parts[1]);
+                const hourIdx = parseInt(parts[2]);
+                const slotKey = `${coachId}_${hourIdx}`;
+                if (!slots[slotKey]) slots[slotKey] = {};
+                slots[slotKey][dayIdx] = weeklyTemplate[key];
+            }
+        });
+        return slots;
+    }
+
+    // 7.2 عرض الأسبوعي
+    function renderWeekly() {
+        const select = document.getElementById('weeklyCoachSelect');
+        if (select.options.length === 0) {
+            coaches.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+        }
+
+        const coachIdx = parseInt(select.value) || (coaches.length > 0 ? coaches[0].id : 0);
+        const thead = document.getElementById('weeklyHead');
+        const tbody = document.getElementById('weeklyBody');
+        thead.innerHTML = ''; tbody.innerHTML = '';
+
+        const days = DAYS;
+        const hours = HOURS;
+
+        let headerRow = document.createElement('tr');
+        let thFirst = document.createElement('th');
+        thFirst.innerHTML = `الأيام \\ الساعات`;
+        thFirst.style.borderRadius = '15px 0 0 0';
+        headerRow.appendChild(thFirst);
+        hours.forEach((hour, hIdx) => {
+            let th = document.createElement('th');
+            th.innerHTML = `${hour} <button class="cell-btn" style="background:rgba(231,76,60,0.2);width:16px;height:16px;font-size:0.5rem;" onclick="deleteWeeklyColumn(${coachIdx}, ${hIdx})" title="حذف">✕</button>`;
+            headerRow.appendChild(th);
+        });
+        let thAdd = document.createElement('th');
+        thAdd.innerHTML = `<button class="cell-btn" style="background:rgba(46,204,113,0.2);width:16px;height:16px;font-size:0.6rem;" onclick="addWeeklyHour(${coachIdx})" title="إضافة">➕</button>`;
+        thAdd.style.background = '#e8f5e9'; thAdd.style.borderRadius = '12px 12px 0 0';
+        headerRow.appendChild(thAdd);
+        thead.appendChild(headerRow);
+
+        days.forEach((day, dIdx) => {
+            const tr = document.createElement('tr');
+            const tdDay = document.createElement('td');
+            tdDay.innerHTML = `${day} <button class="cell-btn" style="background:rgba(231,76,60,0.2);width:16px;height:16px;font-size:0.5rem;" onclick="deleteWeeklyRow(${coachIdx}, ${dIdx})" title="حذف">✕</button>`;
+            tdDay.style.backgroundColor = '#0a2e4a';
+            tdDay.style.color = '#fff';
+            tdDay.style.borderRadius = '12px 0 0 12px';
+            tr.appendChild(tdDay);
+            hours.forEach((hour, hIdx) => {
+                const td = document.createElement('td');
+                const slotKey = `${coachIdx}_${dIdx}_${hIdx}`;
+                let data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
+                let bgColor = '#ffffff', textColor = '#1a1a1a';
+                if (data.isUnavailable) { bgColor = '#4a4a4a'; textColor = '#f0f0f0'; }
+                else if (data.type === 'private1') { bgColor = '#2ecc71'; textColor = '#fff'; }
+                else if (data.type === 'private2') { bgColor = '#5bc0de'; textColor = '#fff'; }
+                else if (data.type === 'group') { bgColor = '#f1c40f'; textColor = '#2c3e50'; }
+                td.style.backgroundColor = bgColor;
+                td.style.color = textColor;
+
+                let studentsHtml = '';
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach((name, idx) => {
+                        studentsHtml += `<span class="student-tag">${name} <span class="cell-btn remove-btn" onclick="event.stopPropagation(); removeWeeklyStudent(${coachIdx}, ${dIdx}, ${hIdx}, ${idx})" style="width:14px;height:14px;font-size:0.4rem;border-radius:50%;background:rgba(0,0,0,0.15);">✕</span></span>`;
+                    });
+                }
+                const addBtn = `<span class="cell-btn add-btn" onclick="event.stopPropagation(); openCellControlWeekly(${coachIdx}, ${dIdx}, ${hIdx})" title="التحكم">➕</span>`;
+
+                td.onclick = function(e) { if (e.target.closest('.cell-btn')) return; openCellControlWeekly(coachIdx, dIdx, hIdx); };
+                td.innerHTML = `
+                    <div class="cell-content">
+                        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1px;">${studentsHtml}</div>
+                        <div class="cell-actions">${addBtn}</div>
+                    </div>
+                `;
+                tr.appendChild(td);
+            });
+            const tdEmpty = document.createElement('td');
+            tdEmpty.style.backgroundColor = 'transparent'; tdEmpty.style.border = 'none'; tdEmpty.style.cursor = 'default';
+            tr.appendChild(tdEmpty);
+            tbody.appendChild(tr);
+        });
+        const trAdd = document.createElement('tr');
+        const tdAdd = document.createElement('td');
+        tdAdd.colSpan = hours.length + 2;
+        tdAdd.style.backgroundColor = 'transparent'; tdAdd.style.border = 'none'; tdAdd.style.textAlign = 'center';
+        tdAdd.innerHTML = `<button class="btn btn-sm btn-mg-outline" onclick="addWeeklyDay(${coachIdx})"><i class="bi bi-plus-circle"></i> إضافة يوم</button>`;
+        trAdd.appendChild(tdAdd);
+        tbody.appendChild(trAdd);
+    }
+
+    // ========================================================================
+    // 8. دوال الجداول (إضافة/حذف أيام وساعات)
+    // ========================================================================
+    window.addWeeklyDay = function(coachIdx) {
+        const newDay = prompt('أدخل اسم اليوم الجديد:');
+        if (!newDay || newDay.trim() === '') return;
+        const days = DAYS;
+        if (days.includes(newDay.trim())) { showToast(`⚠️ اليوم "${newDay.trim()}" موجود`, 'warning'); return; }
+        const hours = HOURS;
+        hours.forEach((hour, hIdx) => {
+            const key = `${coachIdx}_${days.indexOf(newDay.trim())}_${hIdx}`;
+            if (!weeklyTemplate[key]) {
+                weeklyTemplate[key] = { students: [], isUnavailable: false, type: null };
+            }
+        });
+        showToast(`✅ تم إضافة يوم "${newDay.trim()}" للمدرب ${coaches.find(c => c.id === coachIdx)?.name || coachIdx}`, 'success');
+        renderWeekly();
+    };
+
+    window.deleteWeeklyRow = function(coachIdx, dayIdx) {
+        const days = DAYS;
+        if (days.length <= 1) { showToast('⚠️ لا يمكن حذف اليوم الوحيد', 'danger'); return; }
+        if (!confirm(`حذف اليوم "${days[dayIdx]}" بالكامل من جدول "${coaches.find(c => c.id === coachIdx)?.name || coachIdx}"؟`)) return;
+        const hours = HOURS;
+        hours.forEach((hour, hIdx) => {
+            const key = `${coachIdx}_${dayIdx}_${hIdx}`;
+            if (weeklyTemplate[key]) {
+                weeklyTemplate[key].isUnavailable = true;
+                weeklyTemplate[key].students = [];
+                weeklyTemplate[key].type = null;
+            }
+        });
+        showToast(`🔒 تم قفل اليوم "${days[dayIdx]}" من جدول ${coaches.find(c => c.id === coachIdx)?.name || coachIdx}`, 'info');
+        renderWeekly();
+    };
+
+    window.addWeeklyHour = function(coachIdx) {
+        const newHour = prompt('أدخل الساعة الجديدة (مثال: 11 ص):');
+        if (!newHour || newHour.trim() === '') return;
+        const hours = HOURS;
+        if (hours.includes(newHour.trim())) { showToast(`⚠️ الساعة "${newHour.trim()}" موجودة`, 'warning'); return; }
+        hours.push(newHour.trim());
+        const days = DAYS;
+        days.forEach((day, dIdx) => {
+            const key = `${coachIdx}_${dIdx}_${hours.indexOf(newHour.trim())}`;
+            if (!weeklyTemplate[key]) {
+                weeklyTemplate[key] = { students: [], isUnavailable: false, type: null };
+            }
+        });
+        showToast(`✅ تم إضافة ساعة "${newHour.trim()}" للمدرب ${coaches.find(c => c.id === coachIdx)?.name || coachIdx}`, 'success');
+        renderWeekly();
+    };
+
+    window.deleteWeeklyColumn = function(coachIdx, hourIdx) {
+        const hours = HOURS;
+        if (hours.length <= 1) { showToast('⚠️ لا يمكن حذف الساعة الوحيدة', 'danger'); return; }
+        if (!confirm(`حذف الساعة "${hours[hourIdx]}" من جدول "${coaches.find(c => c.id === coachIdx)?.name || coachIdx}"؟`)) return;
+        const days = DAYS;
+        days.forEach((day, dIdx) => {
+            const key = `${coachIdx}_${dIdx}_${hourIdx}`;
+            if (weeklyTemplate[key]) {
+                weeklyTemplate[key].isUnavailable = true;
+                weeklyTemplate[key].students = [];
+                weeklyTemplate[key].type = null;
+            }
+        });
+        showToast(`🔒 تم قفل الساعة "${hours[hourIdx]}" من جدول ${coaches.find(c => c.id === coachIdx)?.name || coachIdx}`, 'info');
+        renderWeekly();
+    };
+
+    // ========================================================================
+    // 9. دوال التحكم في الخلية
+    // ========================================================================
+    function populateCellStudentSelect() {
+        const select = document.getElementById('cellStudentSelect');
+        select.innerHTML = '';
+        const activeStudents = students.filter(s => s.active !== false);
+        if (activeStudents.length === 0) {
+            select.innerHTML = '<option value="">لا يوجد سباحين نشطين</option>';
+            return;
+        }
+        activeStudents.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = `${s.name} (${coaches.find(c => c.id === s.coach_id)?.name || 'بدون'})`;
+            select.appendChild(opt);
+        });
+    }
+
+    window.openCellControl = function(cellKey, view) {
+        populateCellStudentSelect();
+        document.getElementById('cellTargetKey').value = cellKey;
+        document.getElementById('cellTargetView').value = view || 'daily';
+        const parts = cellKey.split('_');
+        const coachId = parseInt(parts[0]);
+        const hourIdx = parseInt(parts[1]);
+        const date = document.getElementById('dailyDatePicker').value || getToday();
+        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
+        const dayIdx = DAYS.indexOf(dayName);
+        
+        let data = dailyExceptions[cellKey] || null;
+        if (!data && dayIdx !== -1) {
+            const slotKey = `${coachId}_${dayIdx}_${hourIdx}`;
+            data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
+        }
+        if (!data) data = { students: [], isUnavailable: false, type: null };
+
+        const typeSelect = document.getElementById('cellTypeSelect');
+        if (data.isUnavailable) typeSelect.value = 'unavailable';
+        else if (data.type === 'private1') typeSelect.value = 'private1';
+        else if (data.type === 'private2') typeSelect.value = 'private2';
+        else if (data.type === 'group') typeSelect.value = 'group';
+        else typeSelect.value = 'available';
+
+        const studentSelect = document.getElementById('cellStudentSelect');
+        Array.from(studentSelect.options).forEach(opt => {
+            const student = students.find(s => s.id == opt.value);
+            if (student && data.students && data.students.includes(student.name)) opt.selected = true;
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('cellControlModal'));
+        modal.show();
+    };
+
+    window.openCellControlWeekly = function(coachIdx, dayIdx, hourIdx) {
+        populateCellStudentSelect();
+        document.getElementById('cellTargetView').value = 'weekly';
+        document.getElementById('cellWeeklyCoachIdx').value = coachIdx;
+        document.getElementById('cellWeeklyDayIdx').value = dayIdx;
+        document.getElementById('cellWeeklyHourIdx').value = hourIdx;
+        const key = `${coachIdx}_${dayIdx}_${hourIdx}`;
+        let data = weeklyTemplate[key] || { students: [], isUnavailable: false, type: null };
+
+        const typeSelect = document.getElementById('cellTypeSelect');
+        if (data.isUnavailable) typeSelect.value = 'unavailable';
+        else if (data.type === 'private1') typeSelect.value = 'private1';
+        else if (data.type === 'private2') typeSelect.value = 'private2';
+        else if (data.type === 'group') typeSelect.value = 'group';
+        else typeSelect.value = 'available';
+
+        const studentSelect = document.getElementById('cellStudentSelect');
+        Array.from(studentSelect.options).forEach(opt => {
+            const student = students.find(s => s.id == opt.value);
+            if (student && data.students && data.students.includes(student.name)) opt.selected = true;
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('cellControlModal'));
+        modal.show();
+    };
+
+    window.saveCellControl = function() {
+        const view = document.getElementById('cellTargetView').value;
+        const typeValue = document.getElementById('cellTypeSelect').value;
+        const studentSelect = document.getElementById('cellStudentSelect');
+        const selectedIds = Array.from(studentSelect.selectedOptions).map(opt => opt.value).filter(v => v);
+        const names = selectedIds.map(id => {
+            const student = students.find(s => s.id == id);
+            return student ? student.name : null;
+        }).filter(n => n);
+
+        let maxCap = 6, finalType = null, isUnavailable = false, finalStudents = [];
+
+        if (typeValue === 'available') { isUnavailable = false; finalType = null; finalStudents = []; }
+        else if (typeValue === 'unavailable') { isUnavailable = true; finalType = null; finalStudents = []; }
+        else if (typeValue === 'private1') { isUnavailable = false; finalType = 'private1'; maxCap = 1; if (names.length > maxCap) { showToast(`⚠️ برايفت 1 يتسع لـ ${maxCap}`, 'danger'); return; } finalStudents = names; }
+        else if (typeValue === 'private2') { isUnavailable = false; finalType = 'private2'; maxCap = 2; if (names.length > maxCap) { showToast(`⚠️ برايفت 2 يتسع لـ ${maxCap}`, 'danger'); return; } finalStudents = names; }
+        else if (typeValue === 'group') { isUnavailable = false; finalType = 'group'; maxCap = 6; if (names.length > maxCap) { showToast(`⚠️ الجروب يتسع لـ ${maxCap}`, 'danger'); return; } finalStudents = names; }
+
+        if (view === 'daily') {
+            const cellKey = document.getElementById('cellTargetKey').value;
+            const parts = cellKey.split('_');
+            const coachId = parseInt(parts[0]);
+            const hourIdx = parseInt(parts[1]);
+            const date = document.getElementById('dailyDatePicker').value || getToday();
+            const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
+            const dayIdx = DAYS.indexOf(dayName);
+            
+            if (dayIdx === -1) { showToast('⚠️ هذا اليوم غير موجود', 'danger'); return; }
+            
+            const exceptionData = {
+                coach_id: coachId,
+                exception_date: date,
+                hour_slot: hourIdx.toString(),
+                student_ids: finalStudents,
+                is_unavailable: isUnavailable,
+                type: finalType,
+                note: 'تم التعديل من الواجهة'
+            };
+            upsertDailyException(exceptionData);
+            
+            dailyExceptions[cellKey] = {
+                students: finalStudents,
+                isUnavailable: isUnavailable,
+                type: finalType,
+                note: 'تم التعديل من الواجهة'
+            };
+        } else {
+            const coachIdx = parseInt(document.getElementById('cellWeeklyCoachIdx').value);
+            const dayIdx = parseInt(document.getElementById('cellWeeklyDayIdx').value);
+            const hourIdx = parseInt(document.getElementById('cellWeeklyHourIdx').value);
+            const key = `${coachIdx}_${dayIdx}_${hourIdx}`;
+            
+            const templateData = {
+                coach_id: coachIdx,
+                day_of_week: DAYS[dayIdx],
+                hour_slot: hourIdx.toString(),
+                student_ids: finalStudents,
+                is_unavailable: isUnavailable,
+                type: finalType
+            };
+            upsertWeeklyTemplate(templateData);
+            
+            weeklyTemplate[key] = {
+                students: finalStudents,
+                isUnavailable: isUnavailable,
+                type: finalType
+            };
+        }
+
+        loadAllData();
+        bootstrap.Modal.getInstance(document.getElementById('cellControlModal')).hide();
+        showToast('✅ تم تحديث الخلية', 'success');
+    };
+
+    // ========================================================================
+    // 10. دوال الحذف السريع
+    // ========================================================================
+    window.removeDailyStudent = function(cellKey, index) {
+        const parts = cellKey.split('_');
+        const coachId = parseInt(parts[0]);
+        const hourIdx = parseInt(parts[1]);
+        const date = document.getElementById('dailyDatePicker').value || getToday();
+        
+        if (dailyExceptions[cellKey]) {
+            const data = dailyExceptions[cellKey];
+            if (data.isUnavailable) return;
+            data.students.splice(index, 1);
+            if (data.students.length === 0 && !data.isUnavailable) {
+                delete dailyExceptions[cellKey];
+                deleteDailyException(coachId, date, hourIdx.toString());
+            } else {
+                upsertDailyException({
+                    coach_id: coachId,
+                    exception_date: date,
+                    hour_slot: hourIdx.toString(),
+                    student_ids: data.students,
+                    is_unavailable: data.isUnavailable,
+                    type: data.type,
+                    note: 'تم التعديل من الواجهة'
+                });
+            }
+        }
+        loadAllData();
+        showToast('🗑️ تم الحذف', 'info');
+    };
+
+    window.removeWeeklyStudent = function(coachIdx, dayIdx, hourIdx, studentIndex) {
+        const key = `${coachIdx}_${dayIdx}_${hourIdx}`;
+        if (weeklyTemplate[key]) {
+            const data = weeklyTemplate[key];
+            data.students.splice(studentIndex, 1);
+            if (data.students.length === 0 && !data.isUnavailable) {
+                data.type = null;
+            }
+            upsertWeeklyTemplate({
+                coach_id: coachIdx,
+                day_of_week: DAYS[dayIdx],
+                hour_slot: hourIdx.toString(),
+                student_ids: data.students,
+                is_unavailable: data.isUnavailable,
+                type: data.type
+            });
+        }
+        loadAllData();
+        showToast('🗑️ تم الحذف', 'info');
+    };
+
+    // ========================================================================
+    // 11. استثناءات اليوم
+    // ========================================================================
+    window.openExceptionForCell = function(cellKey) {
+        const parts = cellKey.split('_');
+        const coachId = parseInt(parts[0]);
+        const hourIdx = parseInt(parts[1]);
+        const coach = coaches.find(c => c.id === coachId);
+        const coachName = coach ? coach.name : 'مدرب';
+        const date = document.getElementById('dailyDatePicker').value || getToday();
+        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
+        const dayIdx = DAYS.indexOf(dayName);
+        
+        const currentData = dailyExceptions[cellKey] || weeklyTemplate[`${coachId}_${dayIdx}_${hourIdx}`] || { students: [], isUnavailable: false, type: null };
+        const newStudents = prompt(`تعديل ليوم واحد\nالمدرب: ${coachName}\nاليوم: ${dayName}\nالساعة: ${HOURS[hourIdx]}\nالسباحين: ${currentData.students ? currentData.students.join(', ') : 'فارغ'}\n\nاكتب الأسماء مفصولة بفاصلة، أو اكتب "غير متاح"`, currentData.students ? currentData.students.join(', ') : '');
+        if (newStudents === null) return;
+        const trimmed = newStudents.trim();
+        if (trimmed.toLowerCase() === 'غير متاح' || trimmed === '') {
+            dailyExceptions[cellKey] = { students: [], isUnavailable: true, note: 'استثناء اليوم', type: null };
+            upsertDailyException({
+                coach_id: coachId,
+                exception_date: date,
+                hour_slot: hourIdx.toString(),
+                student_ids: [],
+                is_unavailable: true,
+                type: null,
+                note: 'استثناء اليوم'
+            });
+        } else {
+            const names = trimmed.split(',').map(s => s.trim()).filter(s => s);
+            if (names.length > 6) { showToast(`⛔ السعة القصوى 6`, 'danger'); return; }
+            const data = { students: names, isUnavailable: false, note: 'تعديل اليوم', type: null };
+            if (names.length === 1) data.type = 'private1';
+            else if (names.length === 2) data.type = 'private2';
+            else if (names.length >= 3) data.type = 'group';
+            dailyExceptions[cellKey] = data;
+            upsertDailyException({
+                coach_id: coachId,
+                exception_date: date,
+                hour_slot: hourIdx.toString(),
+                student_ids: names,
+                is_unavailable: false,
+                type: data.type,
+                note: 'تعديل اليوم'
+            });
+        }
+        loadAllData();
+        showToast('📝 تم تطبيق تعديل اليوم', 'success');
+    };
+
+    window.openExceptionModal = function() {
+        const modal = new bootstrap.Modal(document.getElementById('exceptionModal'));
+        const listDiv = document.getElementById('exceptionList');
+        listDiv.innerHTML = '';
+        const keys = Object.keys(dailyExceptions);
+        if (keys.length === 0) { listDiv.innerHTML = '<div class="alert alert-light">لا توجد استثناءات اليوم.</div>'; }
+        else {
+            keys.forEach(key => {
+                const parts = key.split('_');
+                const coachId = parseInt(parts[0]);
+                const hourIdx = parseInt(parts[1]);
+                const coach = coaches.find(c => c.id === coachId);
+                const coachName = coach ? coach.name : '?';
+                const hour = HOURS[hourIdx] || '?';
+                const data = dailyExceptions[key];
+                const status = data.isUnavailable ? '🔒 غير متاح' : `👥 ${data.students ? data.students.join(', ') : ''}`;
+                const div = document.createElement('div');
+                div.className = 'd-flex justify-content-between align-items-center p-2 border-bottom';
+                div.innerHTML = `<span><strong>${coachName}</strong> - ${hour} : ${status}</span>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeException('${key}')">✕</button>`;
+                listDiv.appendChild(div);
+            });
+        }
+        modal.show();
+    };
+
+    window.removeException = function(cellKey) {
+        const parts = cellKey.split('_');
+        const coachId = parseInt(parts[0]);
+        const hourIdx = parseInt(parts[1]);
+        const date = document.getElementById('dailyDatePicker').value || getToday();
+        delete dailyExceptions[cellKey];
+        deleteDailyException(coachId, date, hourIdx.toString());
+        loadAllData();
+        document.getElementById('exceptionList').innerHTML = '<div class="alert alert-light">تم التحديث.</div>';
+        showToast('🗑️ تم إلغاء الاستثناء', 'info');
+    };
+
+    window.clearWeeklyTemplate = function() {
+        if (!confirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟')) return;
+        weeklyTemplate = {};
+        supabaseClient.from('weekly_template').delete().neq('id', 0);
+        loadAllData();
+        showToast('🗑️ تم مسح الجدول الأسبوعي', 'info');
+    };
+
+    // ========================================================================
+    // 12. تسجيل الحضور
+    // ========================================================================
+    window.openAttendanceModal = function() {
+        document.getElementById('attendanceDate').value = getToday();
+        renderAttendanceModal();
+        const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+        modal.show();
+    };
+
+    function renderAttendanceModal() {
+        const coachFilter = document.getElementById('attendanceCoachFilter');
+        const hourFilter = document.getElementById('attendanceHourFilter');
+        coachFilter.innerHTML = '<option value="all">الكل</option>';
+        coaches.forEach(c => { coachFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+        hourFilter.innerHTML = '<option value="all">الكل</option>';
+        const allHoursSet = new Set();
+        HOURS.forEach(h => allHoursSet.add(h));
+        const allHours = Array.from(allHoursSet).sort();
+        allHours.forEach(h => { hourFilter.innerHTML += `<option value="${h}">${h}</option>`; });
+        document.getElementById('attendanceDate').value = getToday();
+        filterAttendanceList();
+    }
+
+    function filterAttendanceList() {
+        const date = document.getElementById('attendanceDate').value;
+        const coachIdx = document.getElementById('attendanceCoachFilter').value;
+        const hour = document.getElementById('attendanceHourFilter').value;
+        const listDiv = document.getElementById('attendanceList');
+        listDiv.innerHTML = '';
+
+        if (!date) { listDiv.innerHTML = '<div class="alert alert-light">اختر التاريخ أولاً</div>'; return; }
+
+        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
+        const dayIdx = DAYS.indexOf(dayName);
+        if (dayIdx === -1) { listDiv.innerHTML = '<div class="alert alert-light">تاريخ غير صحيح</div>'; return; }
+
+        const expected = [];
+        coaches.forEach((coach, cIdx) => {
+            const hours = HOURS;
+            hours.forEach((h, hIdx) => {
+                if (hour !== 'all' && h !== hour) return;
+                const slotKey = `${coach.id}_${dayIdx}_${hIdx}`;
+                const data = weeklyTemplate[slotKey];
+                if (data && !data.isUnavailable && data.students && data.students.length > 0) {
+                    data.students.forEach(sname => {
+                        const student = students.find(st => st.name === sname && st.active !== false);
+                        if (student) {
+                            expected.push({
+                                studentId: student.id,
+                                studentName: student.name,
+                                coachId: coach.id,
+                                coachName: coach.name,
+                                hour: h,
+                                type: data.type || null
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        let filtered = expected;
+        if (coachIdx !== 'all') filtered = filtered.filter(e => e.coachId == coachIdx);
+        if (hour !== 'all') filtered = filtered.filter(e => e.hour === hour);
+
+        if (filtered.length === 0) {
+            listDiv.innerHTML = '<div class="alert alert-light">لا يوجد سباحين متوقعين في هذا اليوم</div>';
+            return;
+        }
+
+        const groups = {};
+        filtered.forEach(item => {
+            const key = `${item.coachId}_${item.hour}`;
+            if (!groups[key]) groups[key] = { coach: item.coachName, hour: item.hour, students: [], coachId: item.coachId };
+            groups[key].students.push(item);
+        });
+
+        Object.values(groups).forEach(group => {
+            const div = document.createElement('div');
+            div.className = 'mb-2 p-2 bg-light rounded-3';
+            let html = `<h6 class="mb-1" style="font-size:0.85rem;"><i class="bi bi-person-badge"></i> ${group.coach} - ${group.hour}</h6><div class="row g-1">`;
+            group.students.forEach(s => {
+                const existingLog = attendanceLogs.find(log => log.student_id === s.studentId && log.attendance_date === date && log.hour_slot === s.hour);
+                const status = existingLog ? existingLog.status : 'none';
+                const checkedPresent = status === 'present' ? 'checked' : '';
+                const checkedAbsent = status === 'absent' ? 'checked' : '';
+                html += `
+                    <div class="col-md-4 col-6">
+                        <div class="d-flex align-items-center gap-1 p-1 bg-white rounded-2 shadow-sm" style="font-size:0.8rem;">
+                            <span class="fw-bold" style="font-size:0.75rem;">${s.studentName}</span>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="present_${s.studentId}_${s.hour}" value="present" ${checkedPresent} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'present')">
+                                <label class="btn btn-outline-success" for="present_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">ح</label>
+                                <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="absent_${s.studentId}_${s.hour}" value="absent" ${checkedAbsent} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'absent')">
+                                <label class="btn btn-outline-danger" for="absent_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">غ</label>
+                                <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="none_${s.studentId}_${s.hour}" value="none" ${status === 'none' ? 'checked' : ''} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'none')">
+                                <label class="btn btn-outline-secondary" for="none_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">🗑️</label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            div.innerHTML = html;
+            listDiv.appendChild(div);
+        });
+    }
+
+    window.saveAttendance = function(studentId, coachId, date, hour, status) {
+        const existingIndex = attendanceLogs.findIndex(log => log.student_id === studentId && log.attendance_date === date && log.hour_slot === hour);
+        if (existingIndex !== -1) attendanceLogs.splice(existingIndex, 1);
+
+        if (status === 'none') {
+            supabaseClient.from('attendance_logs').delete()
+                .eq('student_id', studentId)
+                .eq('attendance_date', date)
+                .eq('hour_slot', hour);
+            loadAllData();
+            showToast('🗑️ تم إلغاء التسجيل', 'info');
+            return;
+        }
+
+        if (status === 'present') {
+            const rem = poolCard.remaining || 100;
+            if (rem <= 0) {
+                showToast('❌ رصيد كارت الماية صفر!', 'danger');
+                return;
+            }
+        }
+
+        const logData = {
+            student_id: studentId,
+            coach_id: coachId,
+            attendance_date: date,
+            hour_slot: hour,
+            status: status,
+            is_group_session: false
+        };
+        addAttendanceToDB(logData);
+        
+        if (status === 'present') {
+            const newRemaining = Math.max(0, (poolCard.remaining || 100) - 1);
+            poolCard.remaining = newRemaining;
+            updatePoolCardInDB({ remaining_hours: newRemaining });
+        }
+        
+        loadAllData();
+        showToast(`✅ تم تسجيل ${status === 'present' ? 'حضور' : 'غياب'}`, 'success');
+    };
+
+    // ========================================================================
+    // 13. إدارة السباحين
+    // ========================================================================
+    function renderStudents() {
+        const searchTerm = document.getElementById('studentSearchInput').value.toLowerCase().trim();
+        const paymentFilter = document.getElementById('paymentFilter').value;
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '';
+        let filtered = students;
+        if (searchTerm) filtered = filtered.filter(s => s.name.toLowerCase().includes(searchTerm));
+        if (paymentFilter === 'paid') filtered = filtered.filter(s => s.payment_status === 'مدفوع');
+        else if (paymentFilter === 'unpaid') filtered = filtered.filter(s => s.payment_status === 'غير مدفوع');
+        else if (paymentFilter === 'late') filtered = filtered.filter(s => s.payment_status === 'متأخر');
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-2">لا يوجد سباحين</td></tr>`;
+            document.getElementById('studentsCountDisplay').innerText = 'عرض 0 سباح';
+            return;
+        }
+
+        filtered.forEach((s, index) => {
+            const tr = document.createElement('tr');
+            const statusBadge = s.active !== false ? `<span class="status-badge-active"><i class="bi bi-check-circle"></i> نشط</span>` : `<span class="status-badge-inactive"><i class="bi bi-x-circle"></i> غير نشط</span>`;
+            const typeBadge = s.type === 'private1' ? `<span class="type-badge-p1">برايفت 1</span>` : s.type === 'private2' ? `<span class="type-badge-p2">برايفت 2</span>` : `<span class="type-badge-g">جروب</span>`;
+            const coachName = coaches.find(c => c.id === s.coach_id)?.name || 'غير محدد';
+            let paymentBadge = '';
+            if (s.payment_status === 'مدفوع') paymentBadge = `<span class="payment-badge-paid"><i class="bi bi-check-circle"></i> مدفوع</span>`;
+            else if (s.payment_status === 'غير مدفوع') paymentBadge = `<span class="payment-badge-unpaid"><i class="bi bi-x-circle"></i> غير مدفوع</span>`;
+            else if (s.payment_status === 'متأخر') paymentBadge = `<span class="payment-badge-late"><i class="bi bi-exclamation-triangle"></i> متأخر</span>`;
+
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td class="fw-bold">${s.name}</td>
+                <td>${s.phone || '—'}</td>
+                <td>${s.level || '—'}</td>
+                <td>${typeBadge}</td>
+                <td>${coachName}</td>
+                <td>${s.monthly_fee ? formatCurrency(s.monthly_fee) : '0'}</td>
+                <td>${paymentBadge}</td>
+                <td>${s.payment_method || '—'}</td>
+                <td>
+                    <button class="btn btn-sm btn-success" onclick="openPaymentModal(${s.id})" title="دفع"><i class="bi bi-cash"></i></button>
+                    <button class="btn btn-sm btn-warning" onclick="openEditFeeModal(${s.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-${s.active !== false ? 'warning' : 'success'}" onclick="toggleStudentStatus(${s.id})" title="${s.active !== false ? 'تعطيل' : 'تفعيل'}"><i class="bi ${s.active !== false ? 'bi-pause-circle' : 'bi-play-circle'}"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${s.id})" title="حذف"><i class="bi bi-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.getElementById('studentsCountDisplay').innerText = `عرض ${filtered.length} سباح`;
+    }
+
+    window.filterStudents = function() { renderStudents(); };
+
+    window.openAddStudentModal = function() {
+        const coachSelect = document.getElementById('newStudentCoach');
+        coachSelect.innerHTML = '';
+        coaches.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            coachSelect.appendChild(opt);
+        });
+        document.getElementById('newStudentName').value = '';
+        document.getElementById('newStudentPhone').value = '';
+        document.getElementById('newStudentLevel').value = 'متوسط';
+        document.getElementById('newStudentType').value = 'private1';
+        document.getElementById('newStudentFee').value = '0';
+        const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+        modal.show();
+    };
+
+    window.addNewStudent = function() {
+        const name = document.getElementById('newStudentName').value.trim();
+        const phone = document.getElementById('newStudentPhone').value.trim();
+        const level = document.getElementById('newStudentLevel').value;
+        const type = document.getElementById('newStudentType').value;
+        const coachId = parseInt(document.getElementById('newStudentCoach').value);
+        const monthlyFee = parseFloat(document.getElementById('newStudentFee').value) || 0;
+
+        if (!name) { showToast('✋ أدخل اسم السباح', 'danger'); return; }
+        if (students.find(s => s.name === name && s.active !== false)) {
+            showToast('⚠️ هذا الاسم موجود', 'warning'); return;
+        }
+
+        const newStudent = {
+            name: name,
+            phone: phone || 'غير محدد',
+            coach_id: coachId,
+            type: type,
+            level: level,
+            active: true,
+            monthly_fee: monthlyFee,
+            payment_status: 'غير مدفوع',
+            payment_method: 'كاش'
+        };
+        addStudentToDB(newStudent);
+        loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم إضافة السباح ${name}`, 'success');
+    };
+
+    window.openPaymentModal = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        document.getElementById('paymentStudentId').value = studentId;
+        document.getElementById('paymentStudentName').value = student.name;
+        document.getElementById('paymentAmount').value = student.monthly_fee || 0;
+        document.getElementById('paymentMethod').value = student.payment_method || 'كاش';
+        const historyDiv = document.getElementById('paymentHistoryList');
+        historyDiv.innerHTML = '';
+        historyDiv.innerHTML = '<div class="text-muted text-center">لا توجد مدفوعات سابقة</div>';
+        const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        modal.show();
+    };
+
+    window.recordPayment = function() {
+        const studentId = parseInt(document.getElementById('paymentStudentId').value);
+        const student = students.find(s => s.id === studentId);
+        if (!student) { showToast('❌ لم يتم العثور على السباح', 'danger'); return; }
+        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        const method = document.getElementById('paymentMethod').value;
+        if (!amount || amount <= 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
+
+        updateStudentInDB(studentId, { payment_status: 'مدفوع', payment_method: method });
+        
+        const transData = {
+            type: 'revenue',
+            category: 'اشتراك شهرى',
+            amount: amount,
+            description: `اشتراك ${student.name}`,
+            transaction_date: getToday(),
+            student_id: studentId
+        };
+        addTransactionToDB(transData);
+        
+        loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم تسجيل دفع ${formatCurrency(amount)} للسباح ${student.name}`, 'success');
+    };
+
+    window.openEditFeeModal = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        document.getElementById('editFeeStudentId').value = studentId;
+        document.getElementById('editFeeStudentName').value = student.name;
+        document.getElementById('editFeeAmount').value = student.monthly_fee || 0;
+        const modal = new bootstrap.Modal(document.getElementById('editFeeModal'));
+        modal.show();
+    };
+
+    window.saveFeeEdit = function() {
+        const studentId = parseInt(document.getElementById('editFeeStudentId').value);
+        const student = students.find(s => s.id === studentId);
+        if (!student) { showToast('❌ لم يتم العثور على السباح', 'danger'); return; }
+        const newFee = parseFloat(document.getElementById('editFeeAmount').value);
+        if (isNaN(newFee) || newFee < 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
+        updateStudentInDB(studentId, { monthly_fee: newFee });
+        loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editFeeModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم تحديث المبلغ للسباح ${student.name}`, 'success');
+    };
+
+    window.toggleStudentStatus = function(id) {
+        const student = students.find(s => s.id === id);
+        if (!student) return;
+        const newStatus = student.active === false ? true : false;
+        updateStudentInDB(id, { active: newStatus });
+        loadAllData();
+        showToast(`🔄 تم ${newStatus ? 'تفعيل' : 'تعطيل'} ${student.name}`, 'info');
+    };
+
+    window.deleteStudent = function(id) {
+        const student = students.find(s => s.id === id);
+        if (!student) return;
+        if (!confirm(`حذف "${student.name}" نهائياً؟`)) return;
+        deleteStudentFromDB(id);
+        loadAllData();
+        showToast(`🗑️ تم حذف ${student.name}`, 'info');
+    };
+
+    // ========================================================================
+    // 14. الحسابات
+    // ========================================================================
+    function renderTransactions() {
+        const filter = document.getElementById('transactionFilter').value;
+        const listDiv = document.getElementById('transactionList');
+        listDiv.innerHTML = '';
+        let filtered = transactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+        if (filter === 'revenue') filtered = filtered.filter(t => t.type === 'revenue');
+        else if (filter === 'expense') filtered = filtered.filter(t => t.type === 'expense');
+
+        if (filtered.length === 0) {
+            listDiv.innerHTML = '<div class="text-center text-muted py-2">لا توجد معاملات</div>';
+            return;
+        }
+
+        filtered.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'transaction-item';
+            const isRevenue = t.type === 'revenue';
+            const sign = isRevenue ? '+' : '-';
+            const color = isRevenue ? 'text-success' : 'text-danger';
+            const badge = isRevenue ? 'bg-success' : 'bg-danger';
+            div.innerHTML = `
+                <span><i class="bi ${isRevenue ? 'bi-arrow-up-circle' : 'bi-arrow-down-circle'} ${color}"></i> ${t.description || t.category} <span class="badge ${badge}" style="font-size:0.6rem;">${t.category}</span></span>
+                <span class="fw-bold ${color}">${sign} ${formatCurrency(t.amount)}</span>
+                <span class="text-muted small">${t.transaction_date || ''}</span>
+            `;
+            listDiv.appendChild(div);
+        });
+
+        const totalRev = transactions.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalExp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+        document.getElementById('accTotalRevenue').innerText = formatCurrency(totalRev);
+        document.getElementById('accTotalExpense').innerText = formatCurrency(totalExp);
+        const profit = totalRev - totalExp;
+        const profitEl = document.getElementById('accNetProfit');
+        profitEl.innerText = formatCurrency(profit);
+        profitEl.style.color = profit >= 0 ? '#27ae60' : '#e74c3c';
+    }
+
+    window.saveFinance = function() {
+        const type = document.getElementById('financeType').value;
+        const category = document.getElementById('financeCategory').value;
+        const amount = parseFloat(document.getElementById('financeAmount').value);
+        const desc = document.getElementById('financeDesc').value.trim();
+
+        if (!amount || amount <= 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
+
+        if (type === 'expense' && category === 'إيجار مايه') {
+            const hours = Math.round(amount / 55);
+            if (hours > 0) {
+                const newTotal = (poolCard.total || 100) + hours;
+                const newRemaining = (poolCard.remaining || 100) + hours;
+                poolCard.total = newTotal;
+                poolCard.remaining = newRemaining;
+                updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
+                showToast(`✅ تم إضافة ${hours} ساعة إلى كارت الماية`, 'success');
+            }
+        }
+
+        const transData = {
+            type: type,
+            category: category,
+            amount: amount,
+            description: desc || category,
+            transaction_date: getToday()
+        };
+        addTransactionToDB(transData);
+        loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
+        if (modal) modal.hide();
+        document.getElementById('financeAmount').value = '';
+        document.getElementById('financeDesc').value = '';
+        showToast(`✅ تم تسجيل ${type === 'revenue' ? 'إيراد' : 'مصروف'}`, 'success');
+    };
+
+    window.exportTransactions = function() {
+        let text = 'التاريخ,النوع,التصنيف,المبلغ,البيان\n';
+        transactions.forEach(t => {
+            text += `${t.transaction_date},${t.type},${t.category},${t.amount},${t.description || ''}\n`;
+        });
+        const blob = new Blob([text], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `المعاملات_${getToday()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 تم تصدير الحسابات', 'success');
+    };
+
+    window.exportMonthlyReport = function() {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const monthStart = `${year}-${month}-01`;
+        const monthEnd = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+
+        const filtered = transactions.filter(t => t.transaction_date >= monthStart && t.transaction_date <= monthEnd);
+        let text = `تقرير شهري ${month}/${year}\n`;
+        text += '='.repeat(40) + '\n';
+        text += 'التاريخ,النوع,التصنيف,المبلغ,البيان\n';
+        filtered.forEach(t => {
+            text += `${t.transaction_date},${t.type},${t.category},${t.amount},${t.description || ''}\n`;
+        });
+        const totalRev = filtered.filter(t => t.type === 'revenue').reduce((s, t) => s + t.amount, 0);
+        const totalExp = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        text += '\n' + '='.repeat(40) + '\n';
+        text += `إجمالي الإيرادات: ${formatCurrency(totalRev)}\n`;
+        text += `إجمالي المصروفات: ${formatCurrency(totalExp)}\n`;
+        text += `صافي الربح: ${formatCurrency(totalRev - totalExp)}\n`;
+
+        const blob = new Blob([text], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `تقرير_شهري_${year}_${month}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 تم تصدير التقرير الشهري', 'success');
+    };
+
+    window.importData = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                showToast('✅ تم استعادة النسخة بنجاح', 'success');
+            } catch (err) {
+                showToast('❌ خطأ في قراءة الملف', 'danger');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    };
+
+    // ========================================================================
+    // 15. المدربين
+    // ========================================================================
+    function renderCoaches() {
+        const tbody = document.getElementById('coachesTableBody');
+        tbody.innerHTML = '';
+        coaches.forEach((coach, idx) => {
+            const attended = attendanceLogs.filter(l => l.coach_id === coach.id && l.status === 'present').length;
+            const available = attendanceLogs.filter(l => l.coach_id === coach.id && l.status === 'absent').length;
+            const totalDue = (attended * 100) + (available * 50);
+            const expected = calculateExpectedSalary(coach.id);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${idx + 1}</td>
+                <td class="fw-bold">${coach.name}</td>
+                <td>${coach.phone || '—'}</td>
+                <td>${coach.experience || 0}</td>
+                <td>${coach.start_date || '—'}</td>
+                <td>${coach.rating ? '⭐'.repeat(Math.floor(coach.rating)) + (coach.rating % 1 >= 0.5 ? '½' : '') : '—'}</td>
+                <td>${attended}</td>
+                <td>${available}</td>
+                <td class="fw-bold">${formatCurrency(totalDue)}</td>
+                <td class="fw-bold text-primary">${formatCurrency(expected)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function calculateExpectedSalary(coachId) {
+        let attended = 0, available = 0;
+        const days = DAYS;
+        const hours = HOURS;
+        days.forEach((day, dIdx) => {
+            hours.forEach((hour, hIdx) => {
+                const key = `${coachId}_${dIdx}_${hIdx}`;
+                const data = weeklyTemplate[key];
+                if (!data || data.isUnavailable) return;
+                if (data.students && data.students.length > 0) attended += 1;
+                else available += 1;
+            });
+        });
+        return (attended * 100) + (available * 50);
+    }
+
+    window.calculateSalaries = function() {
+        let msg = '🧾 مستحقات المدربين (الفعلية):\n';
+        let total = 0;
+        coaches.forEach((coach) => {
+            const attended = attendanceLogs.filter(l => l.coach_id === coach.id && l.status === 'present').length;
+            const available = attendanceLogs.filter(l => l.coach_id === coach.id && l.status === 'absent').length;
+            const totalDue = (attended * 100) + (available * 50);
+            msg += `\n${coach.name}: ${attended} ساعة مشتغلة + ${available} ساعة متاحة = ${formatCurrency(totalDue)}`;
+            total += totalDue;
+        });
+        msg += `\n\nالإجمالي: ${formatCurrency(total)}`;
+        alert(msg);
+    };
+
+    // ========================================================================
+    // 16. المستخدمين
+    // ========================================================================
+    function renderUsers() {
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = '';
+        users.forEach((u, index) => {
+            const tr = document.createElement('tr');
+            const roleName = u.role === 'admin' ? 'مدير' : u.role === 'coach' ? 'كابتن' : 'مشاهد';
+            const coachName = u.coach_id !== null ? coaches.find(c => c.id === u.coach_id)?.name || 'غير محدد' : '—';
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${u.username}</td>
+                <td>${u.full_name}</td>
+                <td><span class="badge ${u.role === 'admin' ? 'role-admin' : u.role === 'coach' ? 'role-coach' : 'role-viewer'}">${roleName}</span></td>
+                <td>${coachName}</td>
+                <td>
+                    ${u.id !== 1 ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id})" title="حذف"><i class="bi bi-trash"></i></button>` : '<span class="text-muted">أساسي</span>'}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function toggleCoachSelect() {
+        const role = document.getElementById('newUserRole').value;
+        document.getElementById('coachSelectWrapper').style.display = role === 'coach' ? 'block' : 'none';
+    }
+
+    window.openAddUserModal = function() {
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newUserFullName').value = '';
+        document.getElementById('newUserPassword').value = '';
+        document.getElementById('newUserRole').value = 'viewer';
+        const coachSelect = document.getElementById('newUserCoach');
+        coachSelect.innerHTML = '<option value="">بدون</option>';
+        coaches.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            coachSelect.appendChild(opt);
+        });
+        toggleCoachSelect();
+        const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
+        modal.show();
+    };
+
+    window.addNewUser = function() {
+        const username = document.getElementById('newUsername').value.trim();
+        const fullName = document.getElementById('newUserFullName').value.trim();
+        const password = document.getElementById('newUserPassword').value.trim();
+        const role = document.getElementById('newUserRole').value;
+        const coachId = document.getElementById('newUserCoach').value;
+
+        if (!username || !fullName || !password) {
+            showToast('✋ املأ جميع الحقول المطلوبة', 'danger');
+            return;
+        }
+        if (users.find(u => u.username === username)) {
+            showToast('⚠️ اسم المستخدم موجود بالفعل', 'warning');
+            return;
+        }
+
+        const userData = {
+            username: username,
+            password: password,
+            full_name: fullName,
+            role: role,
+            coach_id: role === 'coach' ? parseInt(coachId) : null
+        };
+        addUserToDB(userData);
+        loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم إضافة المستخدم ${fullName}`, 'success');
+    };
+
+    window.deleteUser = function(id) {
+        if (id === 1) { showToast('⚠️ لا يمكن حذف المستخدم الأساسي', 'danger'); return; }
+        if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+        if (currentUser && currentUser.id === id) {
+            showToast('⚠️ لا يمكن حذف المستخدم الحالي', 'danger');
+            return;
+        }
+        deleteUserFromDB(id);
+        loadAllData();
+        showToast('🗑️ تم حذف المستخدم', 'info');
+    };
+
+    // ========================================================================
+    // 17. تحديث الإحصائيات
+    // ========================================================================
+    function updateStatsAndCharts() {
+        const activeStudents = students.filter(s => s.active !== false).length;
+        document.getElementById('totalStudents').innerText = activeStudents;
+
+        const totalRev = transactions.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalExp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+        document.getElementById('totalRevenue').innerText = formatCurrency(totalRev);
+        document.getElementById('totalExpense').innerText = formatCurrency(totalExp);
+
+        const profit = totalRev - totalExp;
+        const profitEl = document.getElementById('netProfit');
+        profitEl.innerText = formatCurrency(profit);
+        profitEl.style.color = profit >= 0 ? '#27ae60' : '#e74c3c';
+
+        const rem = poolCard.remaining || 100;
+        const total = poolCard.total || 100;
+        const pct = Math.min(100, (rem / total) * 100);
+        const fill = document.getElementById('poolBarFill');
+        const text = document.getElementById('poolTextDisplay');
+        const badge = document.getElementById('poolStatusBadge');
+        fill.style.width = pct + '%';
+        if (pct > 50) { fill.style.background = 'linear-gradient(90deg, #2ecc71, #27ae60)'; badge.className = 'badge bg-success text-white p-1'; badge.innerText = 'متبقي ' + Math.round(pct) + '%'; }
+        else if (pct > 20) { fill.style.background = 'linear-gradient(90deg, #f1c40f, #f39c12)'; badge.className = 'badge bg-warning text-dark p-1'; badge.innerText = 'متبقي ' + Math.round(pct) + '%'; }
+        else { fill.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)'; badge.className = 'badge bg-danger text-white p-1'; badge.innerText = 'متبقي ' + Math.round(pct) + '%'; }
+        text.innerText = `${rem} / ${total} ساعة`;
+    }
+
+    window.exportAllData = function() {
+        const data = JSON.stringify({
+            students: students,
+            coaches: coaches,
+            attendanceLogs: attendanceLogs,
+            transactions: transactions,
+            poolCard: poolCard,
+            weeklyTemplate: weeklyTemplate,
+            dailyExceptions: dailyExceptions,
+            users: users
+        }, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `MG_Backup_${getToday()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 تم تصدير النسخة الاحتياطية', 'success');
+    };
+
+    // ========================================================================
+    // 18. دوال التبويبات والتحكم في التاريخ
+    // ========================================================================
+    window.switchView = function(view) {
+        document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        const map = {
+            daily: { container: 'dailyView', tab: 'tabDaily', render: renderDaily },
+            weekly: { container: 'weeklyView', tab: 'tabWeekly', render: renderWeekly },
+            students: { container: 'studentsView', tab: 'tabStudents', render: renderStudents },
+            accounts: { container: 'accountsView', tab: 'tabAccounts', render: renderTransactions },
+            coaches: { container: 'coachesView', tab: 'tabCoaches', render: renderCoaches },
+            users: { container: 'usersView', tab: 'tabUsers', render: renderUsers }
+        };
+        const target = map[view];
+        if (target) {
+            document.getElementById(target.container).classList.add('active');
+            document.getElementById(target.tab).classList.add('active');
+            target.render();
+        }
+    };
+
+    window.setDailyDateToday = function() {
+        dailyViewDate = getToday();
+        document.getElementById('dailyDatePicker').value = dailyViewDate;
+        renderDaily();
+    };
+
+    window.changeDailyDate = function(offset) {
+        const current = dailyViewDate ? new Date(dailyViewDate + 'T00:00:00') : new Date();
+        current.setDate(current.getDate() + offset);
+        const dateStr = current.toISOString().split('T')[0];
+        dailyViewDate = dateStr;
+        document.getElementById('dailyDatePicker').value = dateStr;
+        renderDaily();
+    };
+
+    // ========================================================================
+    // 19. بدء التشغيل
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        document.getElementById('currentDateDisplay').innerText = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('dailyDatePicker').value = getToday();
+
+        console.log('✅ MG Private Swimming - النظام جاهز للاتصال بـ Supabase');
+        console.log('📌 تم استخدام URL:', SUPABASE_URL);
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

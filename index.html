@@ -792,6 +792,13 @@
     const DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const HOURS = ['8 ص', '9 ص', '10 ص', '11 ص', '12 م', '1 م', '2 م', '3 م', '4 م', '5 م', '6 م', '7 م', '8 م', '9 م', '10 م'];
 
+    function getDayIndex(dateStr) {
+        return new Date(dateStr + 'T00:00:00').getDay();
+    }
+    function getDayName(dateStr) {
+        return DAYS[getDayIndex(dateStr)];
+    }
+
     let currentUser = null;
     let dailyViewDate = null;
 
@@ -1130,9 +1137,10 @@
         thead.innerHTML = ''; tbody.innerHTML = '';
         const date = document.getElementById('dailyDatePicker').value || getToday();
         dailyViewDate = date;
-        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
-        const todayDayIdx = DAYS.indexOf(dayName);
-        if (todayDayIdx === -1) return;
+        const dateObj = new Date(date + 'T00:00:00');
+        const jsDay = dateObj.getDay();
+        const todayDayIdx = jsDay;
+        const dayName = DAYS[todayDayIdx];
 
         let headerRow = document.createElement('tr');
         let thFirst = document.createElement('th');
@@ -1425,8 +1433,7 @@
         const coachId = parseInt(parts[0]);
         const hourIdx = parseInt(parts[1]);
         const date = document.getElementById('dailyDatePicker').value || getToday();
-        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
-        const dayIdx = DAYS.indexOf(dayName);
+        const dayIdx = getDayIndex(date);
         
         let data = dailyExceptions[`${coachId}_${date}_${hourIdx}`] || null;
         if (!data && dayIdx !== -1) {
@@ -1502,8 +1509,7 @@
             const coachId = parseInt(parts[0]);
             const hourIdx = parseInt(parts[1]);
             const date = document.getElementById('dailyDatePicker').value || getToday();
-            const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
-            const dayIdx = DAYS.indexOf(dayName);
+            const dayIdx = getDayIndex(date);
             
             if (dayIdx === -1) { showToast('⚠️ هذا اليوم غير موجود', 'danger'); return; }
             
@@ -1617,8 +1623,7 @@
         const coach = coaches.find(c => c.id === coachId);
         const coachName = coach ? coach.name : 'مدرب';
         const date = document.getElementById('dailyDatePicker').value || getToday();
-        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
-        const dayIdx = DAYS.indexOf(dayName);
+        const dayIdx = getDayIndex(date);
         const exceptionKey = `${coachId}_${date}_${hourIdx}`;
         
         const currentData = dailyExceptions[exceptionKey] || weeklyTemplate[`${coachId}_${dayIdx}_${hourIdx}`] || { students: [], isUnavailable: false, type: null };
@@ -1739,8 +1744,8 @@
 
         if (!date) { listDiv.innerHTML = '<div class="alert alert-light">اختر التاريخ أولاً</div>'; return; }
 
-        const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
-        const dayIdx = DAYS.indexOf(dayName);
+        const dayName = getDayName(date);
+        const dayIdx = getDayIndex(date);
         if (dayIdx === -1) { listDiv.innerHTML = '<div class="alert alert-light">تاريخ غير صحيح</div>'; return; }
 
         const expected = [];

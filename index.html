@@ -217,6 +217,18 @@
             .mg-header .logo-text .mg-icon { width: 32px; height: 32px; font-size: 0.9rem; }
             .form-select { font-size: 0.8rem !important; padding: 8px 32px 8px 10px !important; min-height: 38px !important; }
         }
+        .att-note-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px 6px; font-size: 0.7rem; font-family: 'Cairo', sans-serif; resize: none; }
+        .att-note-input:focus { border-color: var(--mg-gold); outline: none; box-shadow: 0 0 0 2px rgba(246,185,59,0.2); }
+        .coach-accounting-card { background: linear-gradient(135deg, #fff, #f8f9fa); border: 2px solid #e9ecef; border-radius: 16px; padding: 16px; transition: 0.3s; }
+        .coach-accounting-card:hover { border-color: var(--mg-gold); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .pool-purchase-option { border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .pool-purchase-option:hover, .pool-purchase-option.selected { border-color: var(--mg-gold); background: rgba(246,185,59,0.08); }
+        .pool-purchase-option .hours-num { font-size: 1.4rem; font-weight: 800; color: var(--mg-primary); }
+        .pool-purchase-option .hours-label { font-size: 0.7rem; color: #666; }
+        .month-close-badge { background: linear-gradient(135deg, #8e44ad, #9b59b6); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; }
+        .count-badge { display: inline-block; min-width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; font-size: 0.7rem; font-weight: 800; }
+        .count-badge-present { background: #d4edda; color: #155724; }
+        .count-badge-absent { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -274,6 +286,7 @@
                     <button class="tab-btn" onclick="switchView('students')" id="tabStudents">🏊 السباحين</button>
                     <button class="tab-btn" onclick="switchView('accounts')" id="tabAccounts">💰 الحسابات</button>
                     <button class="tab-btn" onclick="switchView('coaches')" id="tabCoaches">👨‍🏫 المدربين</button>
+                    <button class="tab-btn" onclick="switchView('coachAccounting')" id="tabCoachAccounting">📊 محاسبة</button>
                     <button class="tab-btn" onclick="switchView('users')" id="tabUsers" style="display:none;">👥 المستخدمين</button>
                     <button class="btn btn-sm btn-outline-light" onclick="logoutUser()"><i class="bi bi-box-arrow-right"></i> خروج</button>
                 </div>
@@ -406,7 +419,7 @@
             <div class="student-table-wrapper">
                 <table class="table table-hover table-striped" id="studentsTable" style="background: rgba(255,255,255,0.6); border-radius: 16px; overflow: hidden; font-size:0.85rem;">
                     <thead style="background: var(--mg-primary); color: #fff;">
-                        <tr><th>#</th><th>الاسم</th><th>التليفون</th><th>المستوى</th><th>النوع</th><th>الكابتن</th><th>المبلغ</th><th>حالة الدفع</th><th>طريقة الدفع</th><th>الإجراءات</th></tr>
+                        <tr><th>#</th><th>الاسم</th><th>التليفون</th><th>المستوى</th><th>النوع</th><th>الكابتن</th><th>المبلغ</th><th>حالة الدفع</th><th>حضور</th><th>غياب</th><th>الإجراءات</th></tr>
                     </thead>
                     <tbody id="studentsTableBody"></tbody>
                 </table>
@@ -421,6 +434,10 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
                 <h6 class="fw-bold mb-0"><i class="bi bi-cash-stack text-primary"></i> كشف الحساب</h6>
                 <div class="d-flex gap-2 flex-wrap">
+                    <select class="form-select form-select-sm" id="accountsMonthFilter" onchange="renderTransactions()" style="max-width:150px;">
+                        <option value="current">الشهر الحالي</option>
+                        <option value="all">كل الأشهر</option>
+                    </select>
                     <select class="form-select form-select-sm" id="transactionFilter" onchange="renderTransactions()" style="max-width:120px;">
                         <option value="all">الكل</option>
                         <option value="revenue">إيرادات</option>
@@ -429,6 +446,7 @@
                     <button class="btn btn-sm btn-mg-outline" onclick="renderTransactions()"><i class="bi bi-arrow-repeat"></i></button>
                     <button class="btn btn-sm btn-mg-gold" onclick="exportMonthlyReport()"><i class="bi bi-file-earmark-spreadsheet"></i> تقرير شهري</button>
                     <button class="btn btn-sm btn-mg-outline" onclick="exportTransactions()"><i class="bi bi-download"></i> تصدير</button>
+                    <button class="btn btn-sm" style="background:#8e44ad;color:#fff;border:none;" onclick="closeMonthModal()"><i class="bi bi-lock"></i> إقفال الشهر</button>
                     <div class="import-btn-wrapper">
                         <button class="btn btn-sm btn-mg-primary"><i class="bi bi-upload"></i> استعادة</button>
                         <input type="file" id="importFileInput" accept=".json" onchange="importData(event)">
@@ -449,14 +467,17 @@
         <div class="schedule-wrapper">
             <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
                 <h6 class="fw-bold mb-0"><i class="bi bi-person-badge text-primary"></i> بيانات المدربين</h6>
-                <button class="btn btn-sm btn-mg-outline" onclick="renderCoaches()"><i class="bi bi-arrow-repeat"></i> تحديث</button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-mg-outline" onclick="renderCoaches()"><i class="bi bi-arrow-repeat"></i> تحديث</button>
+                    <button class="btn btn-sm btn-mg-gold" onclick="openAddCoachModal()"><i class="bi bi-plus-circle"></i> إضافة مدرب</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover table-striped coach-table" style="background: rgba(255,255,255,0.6); border-radius: 16px; overflow: hidden; font-size:0.8rem;">
                     <thead style="background: var(--mg-primary); color: #fff;">
                         <tr>
-                            <th>#</th><th>الاسم</th><th>التليفون</th><th>الخبرة</th><th>بداية العمل</th><th>التقييم</th>
-                            <th>ساعات مشتغلة</th><th>ساعات متاحة</th><th>المستحقات الفعلية</th><th>الراتب المتوقع</th>
+                            <th>#</th><th>الاسم</th><th>التليفون</th><th>الخبرة</th><th>بداية العمل</th><th>التقييم</th><th>ملاحظات</th>
+                            <th>ساعات مشتغلة</th><th>ساعات متاحة</th><th>المستحقات الفعلية</th><th>الراتب المتوقع</th><th>إجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="coachesTableBody"></tbody>
@@ -483,12 +504,35 @@
         </div>
     </div>
 
+    <!-- ===================== محاسبة المدربين ===================== -->
+    <div class="view-container" id="coachAccountingView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-calculator text-primary"></i> محاسبة المدربين الاحترافية</h6>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <select class="form-select form-select-sm" id="accountingMonthSelect" onchange="renderCoachAccounting()" style="max-width:150px;"></select>
+                    <select class="form-select form-select-sm" id="accountingCoachFilter" onchange="renderCoachAccounting()" style="max-width:150px;"></select>
+                </div>
+            </div>
+            <div class="row g-3" id="coachAccountingCards"></div>
+            <div class="mt-3 p-3 bg-white rounded-3">
+                <h6 class="fw-bold"><i class="bi bi-info-circle text-info"></i> طريقة الحساب</h6>
+                <ul class="mb-0" style="font-size:0.85rem;">
+                    <li><strong>الساعة المشتغلة (لها سباح):</strong> <span class="text-success fw-bold">100 ج.م</span></li>
+                    <li><strong>الساعة المتاحة (بدون سباح):</strong> <span class="text-warning fw-bold">50 ج.م</span></li>
+                    <li>ساعات العمل تُحسب من الجدول الأسبوعي الأساسي (بدون استثناءات اليوم)</li>
+                    <li>يمكن تعديل الساعات يدوياً من هذه الصفحة</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- أزرار سريعة -->
     <div class="row g-2 mt-3">
         <div class="col-md-3"><button class="btn btn-mg-primary" data-bs-toggle="modal" data-bs-target="#attendanceModal"><i class="bi bi-check2-square"></i> تسجيل حضور</button></div>
         <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#27ae60;" data-bs-toggle="modal" data-bs-target="#financeModal"><i class="bi bi-wallet2"></i> إيراد / مصروف</button></div>
-        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#e67e22;" onclick="calculateSalaries()"><i class="bi bi-cash-coin"></i> محاسبة المدربين</button></div>
-        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#8e44ad;" onclick="exportAllData()"><i class="bi bi-file-earmark-spreadsheet"></i> نسخة احتياطية</button></div>
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#e67e22;" onclick="switchView('coachAccounting')"><i class="bi bi-calculator"></i> محاسبة المدربين</button></div>
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#8e44ad;" onclick="openArchiveModal()"><i class="bi bi-archive"></i> أرشيف الأشهر</button></div>
     </div>
 </div>
 
@@ -586,7 +630,10 @@
                 </div>
                 <div id="attendanceList" style="max-height:350px;overflow-y:auto;"></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button class="btn btn-mg-gold" onclick="saveAllAttendanceNotes()"><i class="bi bi-save"></i> حفظ الملاحظات</button>
+            </div>
         </div>
     </div>
 </div>
@@ -598,7 +645,20 @@
             <div class="modal-header"><h6 class="modal-title">💰 إيراد / مصروف</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">النوع</label><select class="form-select" id="financeType"><option value="revenue">إيراد</option><option value="expense">مصروف</option></select></div>
-                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">التصنيف</label><select class="form-select" id="financeCategory"><option value="اشتراك شهرى">اشتراك</option><option value="إيجار مايه">إيجار مايه</option><option value="رواتب مدربين">رواتب</option><option value="أخرى">أخرى</option></select></div>
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">التصنيف</label><select class="form-select" id="financeCategory" onchange="togglePoolPurchaseOptions()"><option value="اشتراك شهرى">اشتراك</option><option value="إيجار مايه">إيجار مايه</option><option value="رواتب مدربين">رواتب</option><option value="أخرى">أخرى</option></select></div>
+                <div id="poolPurchaseSection" style="display:none;" class="mb-2 p-2 bg-light rounded-3">
+                    <label class="fw-bold d-block mb-2" style="font-size:0.8rem;"><i class="bi bi-credit-card-2-front text-primary"></i> حجم كارت الماية</label>
+                    <div class="row g-2">
+                        <div class="col-4"><div class="pool-purchase-option" onclick="selectPoolOption(this, 100)"><div class="hours-num">100</div><div class="hours-label">ساعة</div></div></div>
+                        <div class="col-4"><div class="pool-purchase-option" onclick="selectPoolOption(this, 50)"><div class="hours-num">50</div><div class="hours-label">ساعة</div></div></div>
+                        <div class="col-4"><div class="pool-purchase-option" onclick="selectPoolOption(this, 24)"><div class="hours-num">24</div><div class="hours-label">ساعة</div></div></div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="fw-bold" style="font-size:0.75rem;">أو أدخل يدوياً:</label>
+                        <input type="number" class="form-control form-control-sm" id="customPoolHours" placeholder="عدد الساعات" min="1" onchange="selectPoolOption(null, null)">
+                    </div>
+                    <div class="mt-1"><small class="text-muted" style="font-size:0.7rem;">الساعات ستُضاف للكارت تلقائياً عند الحفظ</small></div>
+                </div>
                 <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">المبلغ</label><input type="number" class="form-control" id="financeAmount"></div>
                 <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">البيان</label><input type="text" class="form-control" id="financeDesc"></div>
             </div>
@@ -628,9 +688,81 @@
     </div>
 </div>
 
+<!-- إضافة / تعديل مدرب -->
+<div class="modal fade" id="addEditCoachModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title" id="coachModalTitle"><i class="bi bi-person-plus text-success"></i> إضافة مدرب</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editCoachId">
+                <div class="mb-2"><label class="form-label fw-bold">الاسم *</label><input type="text" class="form-control" id="coachName"></div>
+                <div class="mb-2"><label class="form-label fw-bold">التليفون</label><input type="text" class="form-control" id="coachPhone"></div>
+                <div class="mb-2"><label class="form-label fw-bold">الخبرة (سنوات)</label><input type="number" class="form-control" id="coachExperience" value="0"></div>
+                <div class="mb-2"><label class="form-label fw-bold">بداية العمل</label><input type="date" class="form-control" id="coachStartDate"></div>
+                <div class="mb-2"><label class="form-label fw-bold">التقييم (1-5)</label><input type="number" class="form-control" id="coachRating" min="1" max="5" step="0.5" value="3"></div>
+                <div class="mb-2"><label class="form-label fw-bold">ملاحظات</label><textarea class="form-control" id="coachNotes" rows="3" placeholder="ملاحظات خاصة بالمدرب..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="saveCoachFromModal()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- إقفال الشهر -->
+<div class="modal fade" id="closeMonthModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-lock text-primary"></i> إقفال الشهر المالي</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="fw-bold">الشهر المراد إقفاله</label>
+                    <input type="month" class="form-control" id="closeMonthSelect">
+                </div>
+                <div class="p-2 bg-light rounded-3 mb-2" id="closeMonthSummary"></div>
+                <div class="alert alert-warning" style="font-size:0.8rem;"><i class="bi bi-exclamation-triangle"></i> سيتم أرشفة جميع المعاملات الشهر المحدد وسيتم إعادة العدادات للصفر.</div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-danger" onclick="executeCloseMonth()"><i class="bi bi-lock-fill"></i> إقفال الشهر</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- عرض الأرشيف -->
+<div class="modal fade" id="archiveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title"><i class="bi bi-archive text-primary"></i> أرشيف الأشهر السابقة</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="archiveModalBody">
+                <div class="text-center text-muted">جاري التحميل...</div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button></div>
+        </div>
+    </div>
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
 <script>
+    // ========================================================================
+    // SQL مطلوب - شغّل هذه الأوامر في Supabase SQL Editor:
+    // CREATE TABLE IF NOT EXISTS monthly_closures (
+    //   id BIGSERIAL PRIMARY KEY,
+    //   month_year TEXT NOT NULL UNIQUE,
+    //   total_revenue NUMERIC DEFAULT 0,
+    //   total_expenses NUMERIC DEFAULT 0,
+    //   net_profit NUMERIC DEFAULT 0,
+    //   transaction_count INTEGER DEFAULT 0,
+    //   closure_date TEXT,
+    //   archived_by TEXT,
+    //   created_at TIMESTAMPTZ DEFAULT NOW()
+    // );
+    // ALTER TABLE monthly_closures DISABLE ROW LEVEL SECURITY;
+    //
+    // إذا لم يكنعمود notes موجود في جدول attendance_logs:
+    // ALTER TABLE attendance_logs ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+    //
+    // إذا لم يكنعمود notes موجود في جدول coaches:
+    // ALTER TABLE coaches ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+    // ========================================================================
+
     // ========================================================================
     // 1. إعداد Supabase - مع try-catch لمنع الخطأ
     // ========================================================================
@@ -757,7 +889,9 @@
             if (error) { console.error('Error loading weekly template:', error); return {}; }
             const result = {};
             (data || []).forEach(row => {
-                const key = `${row.coach_id}_${row.day_of_week}_${row.hour_slot}`;
+                const dayIdx = DAYS.indexOf(row.day_of_week);
+                if (dayIdx === -1) return;
+                const key = `${row.coach_id}_${dayIdx}_${row.hour_slot}`;
                 result[key] = {
                     students: row.student_ids || [],
                     isUnavailable: row.is_unavailable || false,
@@ -1033,7 +1167,7 @@
                     const key = `${coachId}_${hIdx}`;
                     let data = dailyExceptions[key] || null;
                     if (!data) {
-                        const slotKey = `${coachId}_${todayDayIdx}_${hourIndexInCoach}`;
+                        const slotKey = `${coachId}_${todayDayIdx}_${hIdx}`;
                         data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
                     }
                     let bgColor = '#ffffff', textColor = '#1a1a1a';
@@ -1207,11 +1341,15 @@
         const hours = HOURS;
         hours.forEach((hour, hIdx) => {
             const key = `${coachIdx}_${dayIdx}_${hIdx}`;
-            if (weeklyTemplate[key]) {
-                weeklyTemplate[key].isUnavailable = true;
-                weeklyTemplate[key].students = [];
-                weeklyTemplate[key].type = null;
-            }
+            weeklyTemplate[key] = { students: [], isUnavailable: true, type: null };
+            upsertWeeklyTemplate({
+                coach_id: coachIdx,
+                day_of_week: DAYS[dayIdx],
+                hour_slot: hIdx.toString(),
+                student_ids: [],
+                is_unavailable: true,
+                type: null
+            });
         });
         showToast(`🔒 تم قفل اليوم "${days[dayIdx]}" من جدول ${coaches.find(c => c.id === coachIdx)?.name || coachIdx}`, 'info');
         renderWeekly();
@@ -1241,11 +1379,15 @@
         const days = DAYS;
         days.forEach((day, dIdx) => {
             const key = `${coachIdx}_${dIdx}_${hourIdx}`;
-            if (weeklyTemplate[key]) {
-                weeklyTemplate[key].isUnavailable = true;
-                weeklyTemplate[key].students = [];
-                weeklyTemplate[key].type = null;
-            }
+            weeklyTemplate[key] = { students: [], isUnavailable: true, type: null };
+            upsertWeeklyTemplate({
+                coach_id: coachIdx,
+                day_of_week: DAYS[dIdx],
+                hour_slot: hourIdx.toString(),
+                student_ids: [],
+                is_unavailable: true,
+                type: null
+            });
         });
         showToast(`🔒 تم قفل الساعة "${hours[hourIdx]}" من جدول ${coaches.find(c => c.id === coachIdx)?.name || coachIdx}`, 'info');
         renderWeekly();
@@ -1592,12 +1734,19 @@
         if (dayIdx === -1) { listDiv.innerHTML = '<div class="alert alert-light">تاريخ غير صحيح</div>'; return; }
 
         const expected = [];
-        coaches.forEach((coach, cIdx) => {
+        coaches.forEach((coach) => {
             const hours = HOURS;
             hours.forEach((h, hIdx) => {
                 if (hour !== 'all' && h !== hour) return;
-                const slotKey = `${coach.id}_${dayIdx}_${hIdx}`;
-                const data = weeklyTemplate[slotKey];
+                const exceptionKey = `${coach.id}_${hIdx}`;
+                const exceptionData = dailyExceptions[exceptionKey];
+                let data = null;
+                if (exceptionData) {
+                    data = exceptionData;
+                } else {
+                    const slotKey = `${coach.id}_${dayIdx}_${hIdx}`;
+                    data = weeklyTemplate[slotKey];
+                }
                 if (data && !data.isUnavailable && data.students && data.students.length > 0) {
                     data.students.forEach(sname => {
                         const student = students.find(st => st.name === sname && st.active !== false);
@@ -1608,6 +1757,7 @@
                                 coachId: coach.id,
                                 coachName: coach.name,
                                 hour: h,
+                                hourIdx: hIdx,
                                 type: data.type || null
                             });
                         }
@@ -1639,19 +1789,25 @@
             group.students.forEach(s => {
                 const existingLog = attendanceLogs.find(log => log.student_id === s.studentId && log.attendance_date === date && log.hour_slot === s.hour);
                 const status = existingLog ? existingLog.status : 'none';
+                const existingNote = existingLog ? (existingLog.notes || '') : '';
                 const checkedPresent = status === 'present' ? 'checked' : '';
                 const checkedAbsent = status === 'absent' ? 'checked' : '';
                 html += `
-                    <div class="col-md-4 col-6">
-                        <div class="d-flex align-items-center gap-1 p-1 bg-white rounded-2 shadow-sm" style="font-size:0.8rem;">
-                            <span class="fw-bold" style="font-size:0.75rem;">${s.studentName}</span>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="present_${s.studentId}_${s.hour}" value="present" ${checkedPresent} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'present')">
-                                <label class="btn btn-outline-success" for="present_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">ح</label>
-                                <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="absent_${s.studentId}_${s.hour}" value="absent" ${checkedAbsent} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'absent')">
-                                <label class="btn btn-outline-danger" for="absent_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">غ</label>
-                                <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="none_${s.studentId}_${s.hour}" value="none" ${status === 'none' ? 'checked' : ''} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'none')">
-                                <label class="btn btn-outline-secondary" for="none_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">🗑️</label>
+                    <div class="col-md-6 col-12">
+                        <div class="d-flex align-items-start gap-1 p-1 bg-white rounded-2 shadow-sm" style="font-size:0.8rem;">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    <span class="fw-bold" style="font-size:0.75rem;">${s.studentName}</span>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="present_${s.studentId}_${s.hour}" value="present" ${checkedPresent} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'present')">
+                                        <label class="btn btn-outline-success" for="present_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">ح</label>
+                                        <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="absent_${s.studentId}_${s.hour}" value="absent" ${checkedAbsent} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'absent')">
+                                        <label class="btn btn-outline-danger" for="absent_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">غ</label>
+                                        <input type="radio" class="btn-check" name="att_${s.studentId}_${s.hour}" id="none_${s.studentId}_${s.hour}" value="none" ${status === 'none' ? 'checked' : ''} onchange="saveAttendance('${s.studentId}', ${s.coachId}, '${date}', '${s.hour}', 'none')">
+                                        <label class="btn btn-outline-secondary" for="none_${s.studentId}_${s.hour}" style="font-size:0.65rem;padding:2px 6px;">🗑️</label>
+                                    </div>
+                                </div>
+                                <textarea class="att-note-input" rows="1" placeholder="ملاحظة..." id="note_${s.studentId}_${s.hour}" data-student="${s.studentId}" data-date="${date}" data-hour="${s.hour}">${existingNote}</textarea>
                             </div>
                         </div>
                     </div>
@@ -1705,6 +1861,31 @@
         showToast(`✅ تم تسجيل ${status === 'present' ? 'حضور' : 'غياب'}`, 'success');
     };
 
+    window.saveAllAttendanceNotes = function() {
+        const noteInputs = document.querySelectorAll('.att-note-input[data-student]');
+        let count = 0;
+        noteInputs.forEach(input => {
+            const studentId = parseInt(input.dataset.student);
+            const date = input.dataset.date;
+            const hour = input.dataset.hour;
+            const note = input.value.trim();
+            const existingLog = attendanceLogs.find(log => log.student_id === studentId && log.attendance_date === date && log.hour_slot === hour);
+            if (existingLog && note) {
+                if (supabaseClient) {
+                    supabaseClient.from('attendance_logs').update({ notes: note }).eq('id', existingLog.id);
+                }
+                existingLog.notes = note;
+                count++;
+            } else if (existingLog && !note) {
+                if (supabaseClient) {
+                    supabaseClient.from('attendance_logs').update({ notes: '' }).eq('id', existingLog.id);
+                }
+                existingLog.notes = '';
+            }
+        });
+        showToast(`✅ تم حفظ ${count} ملاحظة`, 'success');
+    };
+
     // ========================================================================
     // 13. إدارة السباحين
     // ========================================================================
@@ -1720,8 +1901,13 @@
         else if (paymentFilter === 'late') filtered = filtered.filter(s => s.payment_status === 'متأخر');
         filtered.sort((a, b) => a.name.localeCompare(b.name));
 
+        const now = new Date();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const currentYear = now.getFullYear();
+        const monthPrefix = `${currentYear}-${currentMonth}`;
+
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-2">لا يوجد سباحين</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-2">لا يوجد سباحين</td></tr>`;
             document.getElementById('studentsCountDisplay').innerText = 'عرض 0 سباح';
             return;
         }
@@ -1736,6 +1922,9 @@
             else if (s.payment_status === 'غير مدفوع') paymentBadge = `<span class="payment-badge-unpaid"><i class="bi bi-x-circle"></i> غير مدفوع</span>`;
             else if (s.payment_status === 'متأخر') paymentBadge = `<span class="payment-badge-late"><i class="bi bi-exclamation-triangle"></i> متأخر</span>`;
 
+            const monthAttendance = attendanceLogs.filter(l => l.student_id === s.id && l.attendance_date && l.attendance_date.startsWith(monthPrefix) && l.status === 'present').length;
+            const monthAbsence = attendanceLogs.filter(l => l.student_id === s.id && l.attendance_date && l.attendance_date.startsWith(monthPrefix) && l.status === 'absent').length;
+
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td class="fw-bold">${s.name}</td>
@@ -1745,7 +1934,8 @@
                 <td>${coachName}</td>
                 <td>${s.monthly_fee ? formatCurrency(s.monthly_fee) : '0'}</td>
                 <td>${paymentBadge}</td>
-                <td>${s.payment_method || '—'}</td>
+                <td><span class="count-badge count-badge-present">${monthAttendance}</span></td>
+                <td><span class="count-badge count-badge-absent">${monthAbsence}</span></td>
                 <td>
                     <button class="btn btn-sm btn-success" onclick="openPaymentModal(${s.id})" title="دفع"><i class="bi bi-cash"></i></button>
                     <button class="btn btn-sm btn-warning" onclick="openEditFeeModal(${s.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
@@ -1895,11 +2085,18 @@
     // ========================================================================
     function renderTransactions() {
         const filter = document.getElementById('transactionFilter').value;
+        const monthFilter = document.getElementById('accountsMonthFilter').value;
         const listDiv = document.getElementById('transactionList');
         listDiv.innerHTML = '';
         let filtered = transactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
         if (filter === 'revenue') filtered = filtered.filter(t => t.type === 'revenue');
         else if (filter === 'expense') filtered = filtered.filter(t => t.type === 'expense');
+
+        if (monthFilter === 'current') {
+            const now = new Date();
+            const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            filtered = filtered.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix));
+        }
 
         if (filtered.length === 0) {
             listDiv.innerHTML = '<div class="text-center text-muted py-2">لا توجد معاملات</div>';
@@ -1921,8 +2118,14 @@
             listDiv.appendChild(div);
         });
 
-        const totalRev = transactions.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
-        const totalExp = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+        let statsFiltered = transactions;
+        if (monthFilter === 'current') {
+            const now2 = new Date();
+            const monthPrefix2 = `${now2.getFullYear()}-${String(now2.getMonth() + 1).padStart(2, '0')}`;
+            statsFiltered = transactions.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix2));
+        }
+        const totalRev = statsFiltered.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalExp = statsFiltered.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
         document.getElementById('accTotalRevenue').innerText = formatCurrency(totalRev);
         document.getElementById('accTotalExpense').innerText = formatCurrency(totalExp);
         const profit = totalRev - totalExp;
@@ -2046,13 +2249,18 @@
                 <td>${idx + 1}</td>
                 <td class="fw-bold">${coach.name}</td>
                 <td>${coach.phone || '—'}</td>
-                <td>${coach.experience || 0}</td>
+                <td>${coach.experience || 0} سنة</td>
                 <td>${coach.start_date || '—'}</td>
                 <td>${coach.rating ? '⭐'.repeat(Math.floor(coach.rating)) + (coach.rating % 1 >= 0.5 ? '½' : '') : '—'}</td>
+                <td><small class="text-muted">${coach.notes || '—'}</small></td>
                 <td>${attended}</td>
                 <td>${available}</td>
                 <td class="fw-bold">${formatCurrency(totalDue)}</td>
                 <td class="fw-bold text-primary">${formatCurrency(expected)}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="openEditCoachModal(${coach.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCoach(${coach.id})" title="حذف"><i class="bi bi-trash"></i></button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -2086,6 +2294,418 @@
         });
         msg += `\n\nالإجمالي: ${formatCurrency(total)}`;
         alert(msg);
+    };
+
+    // ========================================================================
+    // 15.5 إدارة المدربين (إضافة/تعديل/حذف)
+    // ========================================================================
+    async function addCoachToDB(data) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return null; }
+            const { data: result, error } = await supabaseClient.from('coaches').insert([data]).select();
+            if (error) { showToast('❌ فشل إضافة المدرب: ' + error.message, 'danger'); return null; }
+            return result && result.length > 0 ? result[0] : null;
+        } catch (e) { showToast('❌ خطأ في الاتصال', 'danger'); return null; }
+    }
+
+    async function updateCoachInDB(id, updates) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('coaches').update(updates).eq('id', id);
+            if (error) { showToast('❌ فشل تحديث المدرب: ' + error.message, 'danger'); return false; }
+            return true;
+        } catch (e) { showToast('❌ خطأ في الاتصال', 'danger'); return false; }
+    }
+
+    async function deleteCoachFromDB(id) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('coaches').delete().eq('id', id);
+            if (error) { showToast('❌ فشل حذف المدرب: ' + error.message, 'danger'); return false; }
+            return true;
+        } catch (e) { showToast('❌ خطأ في الاتصال', 'danger'); return false; }
+    }
+
+    window.openAddCoachModal = function() {
+        document.getElementById('coachModalTitle').innerHTML = '<i class="bi bi-person-plus text-success"></i> إضافة مدرب';
+        document.getElementById('editCoachId').value = '';
+        document.getElementById('coachName').value = '';
+        document.getElementById('coachPhone').value = '';
+        document.getElementById('coachExperience').value = '0';
+        document.getElementById('coachStartDate').value = getToday();
+        document.getElementById('coachRating').value = '3';
+        document.getElementById('coachNotes').value = '';
+        const modal = new bootstrap.Modal(document.getElementById('addEditCoachModal'));
+        modal.show();
+    };
+
+    window.openEditCoachModal = function(id) {
+        const coach = coaches.find(c => c.id === id);
+        if (!coach) return;
+        document.getElementById('coachModalTitle').innerHTML = '<i class="bi bi-pencil-square text-warning"></i> تعديل المدرب';
+        document.getElementById('editCoachId').value = id;
+        document.getElementById('coachName').value = coach.name || '';
+        document.getElementById('coachPhone').value = coach.phone || '';
+        document.getElementById('coachExperience').value = coach.experience || 0;
+        document.getElementById('coachStartDate').value = coach.start_date || '';
+        document.getElementById('coachRating').value = coach.rating || 3;
+        document.getElementById('coachNotes').value = coach.notes || '';
+        const modal = new bootstrap.Modal(document.getElementById('addEditCoachModal'));
+        modal.show();
+    };
+
+    window.saveCoachFromModal = function() {
+        const id = document.getElementById('editCoachId').value;
+        const name = document.getElementById('coachName').value.trim();
+        const phone = document.getElementById('coachPhone').value.trim();
+        const experience = parseInt(document.getElementById('coachExperience').value) || 0;
+        const startDate = document.getElementById('coachStartDate').value;
+        const rating = parseFloat(document.getElementById('coachRating').value) || 3;
+        const notes = document.getElementById('coachNotes').value.trim();
+
+        if (!name) { showToast('✋ أدخل اسم المدرب', 'danger'); return; }
+
+        const data = { name, phone, experience, start_date: startDate, rating, notes };
+
+        if (id) {
+            updateCoachInDB(parseInt(id), data);
+            showToast(`✅ تم تحديث بيانات ${name}`, 'success');
+        } else {
+            if (coaches.find(c => c.name === name)) { showToast('⚠️ هذا الاسم موجود', 'warning'); return; }
+            addCoachToDB(data);
+            showToast(`✅ تم إضافة المدرب ${name}`, 'success');
+        }
+        loadAllData();
+        bootstrap.Modal.getInstance(document.getElementById('addEditCoachModal')).hide();
+    };
+
+    window.deleteCoach = function(id) {
+        const coach = coaches.find(c => c.id === id);
+        if (!coach) return;
+        if (!confirm(`حذف المدرب "${coach.name}" نهائياً؟`)) return;
+        deleteCoachFromDB(id);
+        loadAllData();
+        showToast(`🗑️ تم حذف المدرب ${coach.name}`, 'info');
+    };
+
+    // ========================================================================
+    // 15.6 شراء كارت الماية
+    // ========================================================================
+    let selectedPoolHours = 0;
+
+    window.togglePoolPurchaseOptions = function() {
+        const category = document.getElementById('financeCategory').value;
+        const section = document.getElementById('poolPurchaseSection');
+        if (category === 'إيجار مايه') {
+            section.style.display = 'block';
+        } else {
+            section.style.display = 'none';
+            selectedPoolHours = 0;
+            document.querySelectorAll('.pool-purchase-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('customPoolHours').value = '';
+        }
+    };
+
+    window.selectPoolOption = function(el, hours) {
+        document.querySelectorAll('.pool-purchase-option').forEach(e => e.classList.remove('selected'));
+        if (hours) {
+            if (el) el.classList.add('selected');
+            selectedPoolHours = hours;
+            document.getElementById('customPoolHours').value = '';
+        } else {
+            const custom = parseInt(document.getElementById('customPoolHours').value) || 0;
+            selectedPoolHours = custom;
+        }
+    };
+
+    const originalSaveFinance = window.saveFinance;
+    window.saveFinance = function() {
+        const type = document.getElementById('financeType').value;
+        const category = document.getElementById('financeCategory').value;
+        const amount = parseFloat(document.getElementById('financeAmount').value);
+        const desc = document.getElementById('financeDesc').value.trim();
+
+        if (!amount || amount <= 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
+
+        if (type === 'expense' && category === 'إيجار مايه' && selectedPoolHours > 0) {
+            const newTotal = (poolCard.total || 100) + selectedPoolHours;
+            const newRemaining = (poolCard.remaining || 100) + selectedPoolHours;
+            poolCard.total = newTotal;
+            poolCard.remaining = newRemaining;
+            updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
+            showToast(`✅ تم إضافة ${selectedPoolHours} ساعة إلى كارت الماية`, 'success');
+            selectedPoolHours = 0;
+            document.querySelectorAll('.pool-purchase-option').forEach(e => e.classList.remove('selected'));
+            document.getElementById('customPoolHours').value = '';
+        } else if (type === 'expense' && category === 'إيجار مايه') {
+            const hours = Math.round(amount / 55);
+            if (hours > 0) {
+                const newTotal = (poolCard.total || 100) + hours;
+                const newRemaining = (poolCard.remaining || 100) + hours;
+                poolCard.total = newTotal;
+                poolCard.remaining = newRemaining;
+                updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
+                showToast(`✅ تم إضافة ${hours} ساعة إلى كارت الماية`, 'success');
+            }
+        }
+
+        const transData = {
+            type: type,
+            category: category,
+            amount: amount,
+            description: desc || category,
+            transaction_date: getToday()
+        };
+        addTransactionToDB(transData);
+        loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
+        if (modal) modal.hide();
+        document.getElementById('financeAmount').value = '';
+        document.getElementById('financeDesc').value = '';
+        document.getElementById('poolPurchaseSection').style.display = 'none';
+        showToast(`✅ تم تسجيل ${type === 'revenue' ? 'إيراد' : 'مصروف'}`, 'success');
+    };
+
+    // ========================================================================
+    // 15.7 إقفال الشهر المالي
+    // ========================================================================
+    async function loadClosures() {
+        try {
+            if (!supabaseClient) return [];
+            const { data, error } = await supabaseClient.from('monthly_closures').select('*').order('closure_date', { ascending: false });
+            if (error) return [];
+            return data || [];
+        } catch (e) { return []; }
+    }
+
+    async function addClosureToDB(data) {
+        try {
+            if (!supabaseClient) { showToast('❌ Supabase غير متصل', 'danger'); return false; }
+            const { error } = await supabaseClient.from('monthly_closures').insert([data]);
+            if (error) { showToast('❌ فشل إقفال الشهر: ' + error.message, 'danger'); return false; }
+            return true;
+        } catch (e) { showToast('❌ خطأ في الاتصال', 'danger'); return false; }
+    }
+
+    window.closeMonthModal = function() {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        document.getElementById('closeMonthSelect').value = `${year}-${month}`;
+
+        const monthPrefix = `${year}-${month}`;
+        const monthTrans = transactions.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix));
+        const totalRev = monthTrans.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalExp = monthTrans.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+
+        document.getElementById('closeMonthSummary').innerHTML = `
+            <div class="row text-center">
+                <div class="col-4"><strong class="text-success">${formatCurrency(totalRev)}</strong><br><small>إيرادات</small></div>
+                <div class="col-4"><strong class="text-danger">${formatCurrency(totalExp)}</strong><br><small>مصروفات</small></div>
+                <div class="col-4"><strong style="color:${totalRev - totalExp >= 0 ? '#27ae60' : '#e74c3c'};">${formatCurrency(totalRev - totalExp)}</strong><br><small>صافي الربح</small></div>
+            </div>
+            <div class="text-center mt-2"><small class="text-muted">${monthTrans.length} معاملة سيتم أرشفتها</small></div>
+        `;
+
+        const modal = new bootstrap.Modal(document.getElementById('closeMonthModal'));
+        modal.show();
+    };
+
+    window.executeCloseMonth = function() {
+        const monthVal = document.getElementById('closeMonthSelect').value;
+        if (!monthVal) { showToast('❌ اختر الشهر', 'danger'); return; }
+        if (!confirm(`هل أنت متأكد من إقفال شهر ${monthVal}؟ لن تتمكن من التراجع.`)) return;
+
+        const monthPrefix = monthVal;
+        const monthTrans = transactions.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix));
+        const totalRev = monthTrans.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalExp = monthTrans.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+
+        const closureData = {
+            month_year: monthVal,
+            total_revenue: totalRev,
+            total_expenses: totalExp,
+            net_profit: totalRev - totalExp,
+            transaction_count: monthTrans.length,
+            closure_date: getToday(),
+            archived_by: currentUser ? currentUser.full_name : 'admin'
+        };
+
+        addClosureToDB(closureData);
+
+        if (supabaseClient) {
+            supabaseClient.from('transactions').delete().gte('transaction_date', monthPrefix + '-01').lt('transaction_date', monthPrefix + '-32');
+        }
+
+        transactions = transactions.filter(t => !t.transaction_date || !t.transaction_date.startsWith(monthPrefix));
+        loadAllData();
+
+        bootstrap.Modal.getInstance(document.getElementById('closeMonthModal')).hide();
+        showToast(`✅ تم إقفال شهر ${monthVal} بنجاح - الأرباح: ${formatCurrency(totalRev - totalExp)}`, 'success');
+    };
+
+    window.openArchiveModal = function() {
+        const body = document.getElementById('archiveModalBody');
+        body.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p>جاري التحميل...</p></div>';
+        const modal = new bootstrap.Modal(document.getElementById('archiveModal'));
+        modal.show();
+        loadClosures().then(closures => {
+            if (closures.length === 0) {
+                body.innerHTML = '<div class="alert alert-light">لا توجد أرشيفات بعد.</div>';
+                return;
+            }
+            let html = '';
+            closures.forEach(c => {
+                html += `
+                    <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-light rounded-3">
+                        <div>
+                            <strong>${c.month_year}</strong>
+                            <span class="badge bg-secondary ms-1">${c.transaction_count} معاملة</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-success fw-bold">${formatCurrency(c.total_revenue)}</span> /
+                            <span class="text-danger fw-bold">${formatCurrency(c.total_expenses)}</span>
+                            = <strong style="color:${c.net_profit >= 0 ? '#27ae60' : '#e74c3c'};">${formatCurrency(c.net_profit)}</strong>
+                            <br><small class="text-muted">أرشفة: ${c.closure_date}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            body.innerHTML = html;
+        });
+    };
+
+    // ========================================================================
+    // 15.8 محاسبة المدربين الاحترافية
+    // ========================================================================
+    function renderCoachAccounting() {
+        const monthSelect = document.getElementById('accountingMonthSelect');
+        const coachFilterSelect = document.getElementById('accountingCoachFilter');
+        const cardsDiv = document.getElementById('coachAccountingCards');
+
+        if (monthSelect.options.length <= 1) {
+            monthSelect.innerHTML = '';
+            const now = new Date();
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' });
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = label;
+                monthSelect.appendChild(opt);
+            }
+        }
+
+        if (coachFilterSelect.options.length <= 1) {
+            coachFilterSelect.innerHTML = '<option value="all">كل المدربين</option>';
+            coaches.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                coachFilterSelect.appendChild(opt);
+            });
+        }
+
+        const selectedMonth = monthSelect.value;
+        const selectedCoach = coachFilterSelect.value;
+
+        const now = new Date();
+        const monthPrefix = selectedMonth;
+
+        cardsDiv.innerHTML = '';
+
+        const filteredCoaches = selectedCoach === 'all' ? coaches : coaches.filter(c => c.id == selectedCoach);
+
+        filteredCoaches.forEach(coach => {
+            let workingHours = 0;
+            let availableHours = 0;
+
+            DAYS.forEach((day, dIdx) => {
+                HOURS.forEach((hour, hIdx) => {
+                    const key = `${coach.id}_${dIdx}_${hIdx}`;
+                    const data = weeklyTemplate[key];
+                    if (!data || data.isUnavailable) return;
+                    if (data.students && data.students.length > 0) workingHours += 1;
+                    else availableHours += 1;
+                });
+            });
+
+            const actualWorking = attendanceLogs.filter(l => l.coach_id === coach.id && l.status === 'present' && l.attendance_date && l.attendance_date.startsWith(monthPrefix)).length;
+            const actualAvailable = attendanceLogs.filter(l => l.coach_id === coach.id && l.status === 'absent' && l.attendance_date && l.attendance_date.startsWith(monthPrefix)).length;
+
+            const templateSalary = (workingHours * 100) + (availableHours * 50);
+            const actualSalary = (actualWorking * 100) + (actualAvailable * 50);
+
+            const card = document.createElement('div');
+            card.className = 'col-md-6 col-lg-4';
+            card.innerHTML = `
+                <div class="coach-accounting-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-person-badge text-primary"></i> ${coach.name}</h6>
+                        <small class="text-muted">${coach.notes || ''}</small>
+                    </div>
+                    <div class="row text-center mb-2">
+                        <div class="col-4">
+                            <div class="count-badge count-badge-present" style="width:100%;border-radius:12px;height:auto;padding:6px;font-size:1rem;">${workingHours}</div>
+                            <small style="font-size:0.65rem;">ساعات مشتغلة<br>(الجدول)</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="count-badge count-badge-absent" style="width:100%;border-radius:12px;height:auto;padding:6px;font-size:1rem;">${availableHours}</div>
+                            <small style="font-size:0.65rem;">ساعات متاحة<br>(الجدول)</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light" style="width:100%;border-radius:12px;padding:6px;font-size:1rem;font-weight:800;color:var(--mg-primary);">${workingHours + availableHours}</div>
+                            <small style="font-size:0.65rem;">إجمالي<br>ساعات العمل</small>
+                        </div>
+                    </div>
+                    <hr class="my-1">
+                    <div class="row text-center mb-2">
+                        <div class="col-6">
+                            <div class="fw-bold text-success" style="font-size:0.9rem;">${actualWorking}</div>
+                            <small style="font-size:0.65rem;">حضور فعلي</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold text-warning" style="font-size:0.9rem;">${actualAvailable}</div>
+                            <small style="font-size:0.65rem;">غياب فعلي</small>
+                        </div>
+                    </div>
+                    <div class="p-2 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.8rem;">الراتب من الجدول:</span>
+                            <span class="fw-bold text-primary">${formatCurrency(templateSalary)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.8rem;">الراتب الفعلي:</span>
+                            <span class="fw-bold" style="color:${actualSalary >= templateSalary ? '#27ae60' : '#e67e22'};">${formatCurrency(actualSalary)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.75rem;">الساعة المشتغلة: <strong class="text-success">100 ج.م</strong></span>
+                            <span style="font-size:0.75rem;">الساعة المتاحة: <strong class="text-warning">50 ج.م</strong></span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" style="font-size:0.7rem;">تعديل يدوي</span>
+                            <input type="number" class="form-control" id="manualSalary_${coach.id}" placeholder="الراتب" value="${actualSalary}" style="font-size:0.8rem;">
+                            <button class="btn btn-sm btn-primary" onclick="saveManualSalary(${coach.id})" style="font-size:0.7rem;">حفظ</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            cardsDiv.appendChild(card);
+        });
+
+        if (filteredCoaches.length === 0) {
+            cardsDiv.innerHTML = '<div class="col-12 text-center text-muted py-3">لا يوجد مدربين</div>';
+        }
+    }
+
+    window.saveManualSalary = function(coachId) {
+        const input = document.getElementById('manualSalary_' + coachId);
+        const amount = parseFloat(input.value);
+        if (isNaN(amount)) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
+        showToast(`✅ تم حفظ الراتب اليدوي: ${formatCurrency(amount)} للمدرب ${coaches.find(c => c.id === coachId)?.name}`, 'success');
     };
 
     // ========================================================================
@@ -2240,6 +2860,7 @@
             students: { container: 'studentsView', tab: 'tabStudents', render: renderStudents },
             accounts: { container: 'accountsView', tab: 'tabAccounts', render: renderTransactions },
             coaches: { container: 'coachesView', tab: 'tabCoaches', render: renderCoaches },
+            coachAccounting: { container: 'coachAccountingView', tab: 'tabCoachAccounting', render: renderCoachAccounting },
             users: { container: 'usersView', tab: 'tabUsers', render: renderUsers }
         };
         const target = map[view];

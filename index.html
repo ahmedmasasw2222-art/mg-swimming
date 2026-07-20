@@ -869,7 +869,10 @@
             if (!supabaseClient) { console.warn('Supabase not initialized'); return { total: 100, remaining: 100 }; }
             const { data, error } = await supabaseClient.from('pool_card').select('*').order('id', { ascending: false }).limit(1);
             if (error) { console.error('Error loading pool card:', error); return { total: 100, remaining: 100 }; }
-            return data && data.length > 0 ? data[0] : { total: 100, remaining: 100 };
+            if (data && data.length > 0) {
+                return { total: data[0].total_hours || 100, remaining: data[0].remaining_hours || 100, id: data[0].id };
+            }
+            return { total: 100, remaining: 100 };
         } catch (e) { console.error('Exception loading pool card:', e); return { total: 100, remaining: 100 }; }
     }
 
@@ -909,7 +912,7 @@
             if (error) { console.error('Error loading daily exceptions:', error); return {}; }
             const result = {};
             (data || []).forEach(row => {
-                const key = `${row.coach_id}_${row.hour_slot}`;
+                const key = `${row.coach_id}_${row.exception_date}_${row.hour_slot}`;
                 result[key] = {
                     students: row.student_ids || [],
                     isUnavailable: row.is_unavailable || false,
@@ -1165,7 +1168,9 @@
                     td.style.cursor = 'default';
                 } else {
                     const key = `${coachId}_${hIdx}`;
-                    let data = dailyExceptions[key] || null;
+                    const date = document.getElementById('dailyDatePicker').value || getToday();
+                    const exceptionKey = `${coachId}_${date}_${hIdx}`;
+                    let data = dailyExceptions[exceptionKey] || null;
                     if (!data) {
                         const slotKey = `${coachId}_${todayDayIdx}_${hIdx}`;
                         data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
@@ -1423,7 +1428,7 @@
         const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
         const dayIdx = DAYS.indexOf(dayName);
         
-        let data = dailyExceptions[cellKey] || null;
+        let data = dailyExceptions[`${coachId}_${date}_${hourIdx}`] || null;
         if (!data && dayIdx !== -1) {
             const slotKey = `${coachId}_${dayIdx}_${hourIdx}`;
             data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
@@ -1513,7 +1518,8 @@
             };
             upsertDailyException(exceptionData);
             
-            dailyExceptions[cellKey] = {
+            const exceptionKey = `${coachId}_${date}_${hourIdx}`;
+            dailyExceptions[exceptionKey] = {
                 students: finalStudents,
                 isUnavailable: isUnavailable,
                 type: finalType,
@@ -1555,13 +1561,14 @@
         const coachId = parseInt(parts[0]);
         const hourIdx = parseInt(parts[1]);
         const date = document.getElementById('dailyDatePicker').value || getToday();
+        const exceptionKey = `${coachId}_${date}_${hourIdx}`;
         
-        if (dailyExceptions[cellKey]) {
-            const data = dailyExceptions[cellKey];
+        if (dailyExceptions[exceptionKey]) {
+            const data = dailyExceptions[exceptionKey];
             if (data.isUnavailable) return;
             data.students.splice(index, 1);
             if (data.students.length === 0 && !data.isUnavailable) {
-                delete dailyExceptions[cellKey];
+                delete dailyExceptions[exceptionKey];
                 deleteDailyException(coachId, date, hourIdx.toString());
             } else {
                 upsertDailyException({
@@ -1612,13 +1619,14 @@
         const date = document.getElementById('dailyDatePicker').value || getToday();
         const dayName = new Date(date + 'T00:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
         const dayIdx = DAYS.indexOf(dayName);
+        const exceptionKey = `${coachId}_${date}_${hourIdx}`;
         
-        const currentData = dailyExceptions[cellKey] || weeklyTemplate[`${coachId}_${dayIdx}_${hourIdx}`] || { students: [], isUnavailable: false, type: null };
+        const currentData = dailyExceptions[exceptionKey] || weeklyTemplate[`${coachId}_${dayIdx}_${hourIdx}`] || { students: [], isUnavailable: false, type: null };
         const newStudents = prompt(`تعديل ليوم واحد\nالمدرب: ${coachName}\nاليوم: ${dayName}\nالساعة: ${HOURS[hourIdx]}\nالسباحين: ${currentData.students ? currentData.students.join(', ') : 'فارغ'}\n\nاكتب الأسماء مفصولة بفاصلة، أو اكتب "غير متاح"`, currentData.students ? currentData.students.join(', ') : '');
         if (newStudents === null) return;
         const trimmed = newStudents.trim();
         if (trimmed.toLowerCase() === 'غير متاح' || trimmed === '') {
-            dailyExceptions[cellKey] = { students: [], isUnavailable: true, note: 'استثناء اليوم', type: null };
+            dailyExceptions[exceptionKey] = { students: [], isUnavailable: true, note: 'استثناء اليوم', type: null };
             upsertDailyException({
                 coach_id: coachId,
                 exception_date: date,
@@ -1635,7 +1643,7 @@
             if (names.length === 1) data.type = 'private1';
             else if (names.length === 2) data.type = 'private2';
             else if (names.length >= 3) data.type = 'group';
-            dailyExceptions[cellKey] = data;
+            dailyExceptions[exceptionKey] = data;
             upsertDailyException({
                 coach_id: coachId,
                 exception_date: date,
@@ -1654,13 +1662,14 @@
         const modal = new bootstrap.Modal(document.getElementById('exceptionModal'));
         const listDiv = document.getElementById('exceptionList');
         listDiv.innerHTML = '';
-        const keys = Object.keys(dailyExceptions);
-        if (keys.length === 0) { listDiv.innerHTML = '<div class="alert alert-light">لا توجد استثناءات اليوم.</div>'; }
+        const date = document.getElementById('dailyDatePicker').value || getToday();
+        const dateKeys = Object.keys(dailyExceptions).filter(k => k.includes('_' + date + '_'));
+        if (dateKeys.length === 0) { listDiv.innerHTML = '<div class="alert alert-light">لا توجد استثناءات اليوم.</div>'; }
         else {
-            keys.forEach(key => {
+            dateKeys.forEach(key => {
                 const parts = key.split('_');
                 const coachId = parseInt(parts[0]);
-                const hourIdx = parseInt(parts[1]);
+                const hourIdx = parseInt(parts[2]);
                 const coach = coaches.find(c => c.id === coachId);
                 const coachName = coach ? coach.name : '?';
                 const hour = HOURS[hourIdx] || '?';
@@ -1681,7 +1690,8 @@
         const coachId = parseInt(parts[0]);
         const hourIdx = parseInt(parts[1]);
         const date = document.getElementById('dailyDatePicker').value || getToday();
-        delete dailyExceptions[cellKey];
+        const exceptionKey = `${coachId}_${date}_${hourIdx}`;
+        delete dailyExceptions[exceptionKey];
         deleteDailyException(coachId, date, hourIdx.toString());
         loadAllData();
         document.getElementById('exceptionList').innerHTML = '<div class="alert alert-light">تم التحديث.</div>';
@@ -1738,7 +1748,7 @@
             const hours = HOURS;
             hours.forEach((h, hIdx) => {
                 if (hour !== 'all' && h !== hour) return;
-                const exceptionKey = `${coach.id}_${hIdx}`;
+                const exceptionKey = `${coach.id}_${date}_${hIdx}`;
                 const exceptionData = dailyExceptions[exceptionKey];
                 let data = null;
                 if (exceptionData) {
@@ -1819,12 +1829,12 @@
         });
     }
 
-    window.saveAttendance = function(studentId, coachId, date, hour, status) {
+    window.saveAttendance = async function(studentId, coachId, date, hour, status) {
         const existingIndex = attendanceLogs.findIndex(log => log.student_id === studentId && log.attendance_date === date && log.hour_slot === hour);
         if (existingIndex !== -1) attendanceLogs.splice(existingIndex, 1);
 
         if (status === 'none') {
-            supabaseClient.from('attendance_logs').delete()
+            await supabaseClient.from('attendance_logs').delete()
                 .eq('student_id', studentId)
                 .eq('attendance_date', date)
                 .eq('hour_slot', hour);
@@ -1849,12 +1859,12 @@
             status: status,
             is_group_session: false
         };
-        addAttendanceToDB(logData);
+        await addAttendanceToDB(logData);
         
         if (status === 'present') {
             const newRemaining = Math.max(0, (poolCard.remaining || 100) - 1);
             poolCard.remaining = newRemaining;
-            updatePoolCardInDB({ remaining_hours: newRemaining });
+            await updatePoolCardInDB({ remaining_hours: newRemaining });
         }
         
         loadAllData();
@@ -2419,7 +2429,7 @@
     };
 
     const originalSaveFinance = window.saveFinance;
-    window.saveFinance = function() {
+    window.saveFinance = async function() {
         const type = document.getElementById('financeType').value;
         const category = document.getElementById('financeCategory').value;
         const amount = parseFloat(document.getElementById('financeAmount').value);
@@ -2432,7 +2442,7 @@
             const newRemaining = (poolCard.remaining || 100) + selectedPoolHours;
             poolCard.total = newTotal;
             poolCard.remaining = newRemaining;
-            updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
+            await updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
             showToast(`✅ تم إضافة ${selectedPoolHours} ساعة إلى كارت الماية`, 'success');
             selectedPoolHours = 0;
             document.querySelectorAll('.pool-purchase-option').forEach(e => e.classList.remove('selected'));
@@ -2444,7 +2454,7 @@
                 const newRemaining = (poolCard.remaining || 100) + hours;
                 poolCard.total = newTotal;
                 poolCard.remaining = newRemaining;
-                updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
+                await updatePoolCardInDB({ total_hours: newTotal, remaining_hours: newRemaining });
                 showToast(`✅ تم إضافة ${hours} ساعة إلى كارت الماية`, 'success');
             }
         }

@@ -738,6 +738,25 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius:20px;border:2px solid #e74c3c;">
+            <div class="modal-header" style="background:#e74c3c;color:#fff;border-radius:18px 18px 0 0;">
+                <h6 class="modal-title" id="confirmModalTitle"><i class="bi bi-exclamation-triangle"></i> تأكيد الحذف</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-trash fs-1 text-danger mb-2"></i>
+                <p class="fw-bold mb-0" id="confirmModalMsg">هل أنت متأكد؟</p>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top:none;">
+                <button class="btn btn-secondary px-3" data-bs-dismiss="modal" id="confirmModalCancel">إلغاء</button>
+                <button class="btn btn-danger px-3" id="confirmModalOk">نعم، احذف</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
 <script>
@@ -830,6 +849,28 @@
         `;
         container.insertAdjacentHTML('beforeend', html);
         setTimeout(() => { const t = container.querySelector('.toast'); if(t) t.remove(); }, 3500);
+    }
+
+    function showConfirm(message, title) {
+        return new Promise(resolve => {
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            document.getElementById('confirmModalMsg').textContent = message;
+            if (title) document.getElementById('confirmModalTitle').innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + title;
+            const okBtn = document.getElementById('confirmModalOk');
+            const cancelBtn = document.getElementById('confirmModalCancel');
+            function cleanup() {
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                document.getElementById('confirmModal').removeEventListener('hidden.bs.modal', onHidden);
+            }
+            function onOk() { cleanup(); modal.hide(); resolve(true); }
+            function onCancel() { cleanup(); modal.hide(); resolve(false); }
+            function onHidden() { cleanup(); resolve(false); }
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+            document.getElementById('confirmModal').addEventListener('hidden.bs.modal', onHidden);
+            modal.show();
+        });
     }
 
     // ========================================================================
@@ -1347,10 +1388,10 @@
         renderWeekly();
     };
 
-    window.deleteWeeklyRow = function(coachIdx, dayIdx) {
+    window.deleteWeeklyRow = async function(coachIdx, dayIdx) {
         const days = DAYS;
         if (days.length <= 1) { showToast('⚠️ لا يمكن حذف اليوم الوحيد', 'danger'); return; }
-        if (!confirm(`حذف اليوم "${days[dayIdx]}" بالكامل من جدول "${coaches.find(c => c.id === coachIdx)?.name || coachIdx}"؟`)) return;
+        if (!await showConfirm(`حذف اليوم "${days[dayIdx]}" بالكامل من جدول "${coaches.find(c => c.id === coachIdx)?.name || coachIdx}"؟`)) return;
         const hours = HOURS;
         hours.forEach((hour, hIdx) => {
             const key = `${coachIdx}_${dayIdx}_${hIdx}`;
@@ -1385,10 +1426,10 @@
         renderWeekly();
     };
 
-    window.deleteWeeklyColumn = function(coachIdx, hourIdx) {
+    window.deleteWeeklyColumn = async function(coachIdx, hourIdx) {
         const hours = HOURS;
         if (hours.length <= 1) { showToast('⚠️ لا يمكن حذف الساعة الوحيدة', 'danger'); return; }
-        if (!confirm(`حذف الساعة "${hours[hourIdx]}" من جدول "${coaches.find(c => c.id === coachIdx)?.name || coachIdx}"؟`)) return;
+        if (!await showConfirm(`حذف الساعة "${hours[hourIdx]}" من جدول "${coaches.find(c => c.id === coachIdx)?.name || coachIdx}"؟`)) return;
         const days = DAYS;
         days.forEach((day, dIdx) => {
             const key = `${coachIdx}_${dIdx}_${hourIdx}`;
@@ -1703,8 +1744,8 @@
         showToast('🗑️ تم إلغاء الاستثناء', 'info');
     };
 
-    window.clearWeeklyTemplate = function() {
-        if (!confirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟')) return;
+    window.clearWeeklyTemplate = async function() {
+        if (!await showConfirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟')) return;
         weeklyTemplate = {};
         supabaseClient.from('weekly_template').delete().neq('id', 0);
         loadAllData();
@@ -2086,10 +2127,10 @@
         showToast(`🔄 تم ${newStatus ? 'تفعيل' : 'تعطيل'} ${student.name}`, 'info');
     };
 
-    window.deleteStudent = function(id) {
+    window.deleteStudent = async function(id) {
         const student = students.find(s => s.id === id);
         if (!student) return;
-        if (!confirm(`حذف "${student.name}" نهائياً؟`)) return;
+        if (!await showConfirm(`حذف "${student.name}" نهائياً؟`)) return;
         deleteStudentFromDB(id);
         loadAllData();
         showToast(`🗑️ تم حذف ${student.name}`, 'info');
@@ -2394,10 +2435,10 @@
         bootstrap.Modal.getInstance(document.getElementById('addEditCoachModal')).hide();
     };
 
-    window.deleteCoach = function(id) {
+    window.deleteCoach = async function(id) {
         const coach = coaches.find(c => c.id === id);
         if (!coach) return;
-        if (!confirm(`حذف المدرب "${coach.name}" نهائياً؟`)) return;
+        if (!await showConfirm(`حذف المدرب "${coach.name}" نهائياً؟`)) return;
         deleteCoachFromDB(id);
         loadAllData();
         showToast(`🗑️ تم حذف المدرب ${coach.name}`, 'info');
@@ -2526,10 +2567,10 @@
         modal.show();
     };
 
-    window.executeCloseMonth = function() {
+    window.executeCloseMonth = async function() {
         const monthVal = document.getElementById('closeMonthSelect').value;
         if (!monthVal) { showToast('❌ اختر الشهر', 'danger'); return; }
-        if (!confirm(`هل أنت متأكد من إقفال شهر ${monthVal}؟ لن تتمكن من التراجع.`)) return;
+        if (!await showConfirm(`هل أنت متأكد من إقفال شهر ${monthVal}؟ لن تتمكن من التراجع.`)) return;
 
         const monthPrefix = monthVal;
         const monthTrans = transactions.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix));
@@ -2800,9 +2841,9 @@
         showToast(`✅ تم إضافة المستخدم ${fullName}`, 'success');
     };
 
-    window.deleteUser = function(id) {
+    window.deleteUser = async function(id) {
         if (id === 1) { showToast('⚠️ لا يمكن حذف المستخدم الأساسي', 'danger'); return; }
-        if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+        if (!await showConfirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
         if (currentUser && currentUser.id === id) {
             showToast('⚠️ لا يمكن حذف المستخدم الحالي', 'danger');
             return;

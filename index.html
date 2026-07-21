@@ -818,6 +818,17 @@
     //   created_at TIMESTAMPTZ DEFAULT NOW()
     // );
     // ALTER TABLE activity_log DISABLE ROW LEVEL SECURITY;
+    //
+    // جدول الأرشيف:
+    // CREATE TABLE IF NOT EXISTS data_archives (
+    //   id BIGSERIAL PRIMARY KEY,
+    //   archive_name TEXT NOT NULL,
+    //   archive_type TEXT DEFAULT 'season',
+    //   archive_data JSONB DEFAULT '{}',
+    //   archived_by TEXT DEFAULT 'مدير',
+    //   created_at TIMESTAMPTZ DEFAULT NOW()
+    // );
+    // ALTER TABLE data_archives DISABLE ROW LEVEL SECURITY;
     // ========================================================================
 
     // ========================================================================
@@ -1030,6 +1041,27 @@
             if (!supabaseClient) return [];
             const { data, error } = await supabaseClient.from('activity_log').select('*').order('created_at', { ascending: false }).limit(200);
             if (error) { console.error('Error loading activity log:', error); return []; }
+            return data || [];
+        } catch (e) { return []; }
+    }
+
+    async function saveArchiveToDB(archiveName, archiveType, archiveData) {
+        try {
+            if (!supabaseClient) return;
+            await supabaseClient.from('data_archives').insert([{
+                archive_name: archiveName,
+                archive_type: archiveType,
+                archive_data: archiveData,
+                archived_by: currentUser ? currentUser.full_name || currentUser.username || 'مدير' : 'مدير'
+            }]);
+        } catch (e) { console.error('Error saving archive:', e); }
+    }
+
+    async function loadArchivesFromDB() {
+        try {
+            if (!supabaseClient) return [];
+            const { data, error } = await supabaseClient.from('data_archives').select('*').order('created_at', { ascending: false });
+            if (error) return [];
             return data || [];
         } catch (e) { return []; }
     }
@@ -1809,12 +1841,14 @@
     };
 
     window.clearWeeklyTemplate = async function() {
-        if (!await showConfirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟')) return;
+        if (!await showConfirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟ سيتم أرشفته تلقائياً أولاً.')) return;
+        const archiveData = { weeklyTemplate: weeklyTemplate, coaches: coaches, timestamp: new Date().toISOString() };
+        await saveArchiveToDB('أرشيف الجدول الأسبوعي - ' + getToday(), 'weekly_template', archiveData);
         weeklyTemplate = {};
         supabaseClient.from('weekly_template').delete().neq('id', 0);
-        logActivity('حذف', 'الجدول الأسبوعي', 'الكل', 'مسح شامل لكل الجدول');
+        logActivity('حذف', 'الجدول الأسبوعي', 'الكل', 'مسح شامل مع أرشفة تلقائية');
         loadAllData();
-        showToast('🗑️ تم مسح الجدول الأسبوعي', 'info');
+        showToast('📦 تم الأرشفة ثم مسح الجدول الأسبوعي', 'info');
     };
 
     // ========================================================================
@@ -2673,17 +2707,16 @@
         showToast(`✅ تم إقفال شهر ${monthVal} بنجاح - الأرباح: ${formatCurrency(totalRev - totalExp)}`, 'success');
     };
 
-    window.openArchiveModal = function() {
+    window.openArchiveModal = async function() {
         const body = document.getElementById('archiveModalBody');
         body.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p>جاري التحميل...</p></div>';
         const modal = new bootstrap.Modal(document.getElementById('archiveModal'));
         modal.show();
-        loadClosures().then(closures => {
-            if (closures.length === 0) {
-                body.innerHTML = '<div class="alert alert-light">لا توجد أرشيفات بعد.</div>';
-                return;
-            }
-            let html = '';
+        const closures = await loadClosures();
+        const archives = await loadArchivesFromDB();
+        let html = '';
+        if (closures.length > 0) {
+            html += '<h6 class="fw-bold text-primary mb-2"><i class="bi bi-calendar-month"></i> أرشيف الأشهر المالية</h6>';
             closures.forEach(c => {
                 html += `
                     <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-light rounded-3">
@@ -2700,8 +2733,41 @@
                     </div>
                 `;
             });
-            body.innerHTML = html;
-        });
+        }
+        if (archives.length > 0) {
+            html += '<h6 class="fw-bold text-primary mt-3 mb-2"><i class="bi bi-archive"></i> أرشيف البيانات</h6>';
+            archives.forEach(a => {
+                const dateStr = a.created_at ? new Date(a.created_at).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+                html += `
+                    <div class="d-flex justify-content-between align-items-center p-2 mb-1 bg-light rounded-3">
+                        <div>
+                            <strong>${a.archive_name}</strong>
+                            <span class="badge bg-info ms-1">${a.archive_type}</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">${dateStr} | ${a.archived_by || ''}</small>
+                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="viewArchiveData(${a.id})">عرض</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        if (!html) html = '<div class="alert alert-light">لا توجد أرشيفات بعد.</div>';
+        body.innerHTML = html;
+    };
+
+    window.viewArchiveData = async function(id) {
+        if (!supabaseClient) return;
+        const { data } = await supabaseClient.from('data_archives').select('archive_data').eq('id', id).single();
+        if (data && data.archive_data) {
+            const json = JSON.stringify(data.archive_data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `archive_${id}.json`; a.click();
+            URL.revokeObjectURL(url);
+            showToast('📥 تم تحميل بيانات الأرشيف', 'success');
+        }
     };
 
     // ========================================================================

@@ -1029,16 +1029,17 @@
 
     async function logActivity(actionType, entityType, entityName, details) {
         try {
-            if (!supabaseClient) return;
+            if (!supabaseClient) { console.warn('logActivity: no supabaseClient'); return; }
             const userName = currentUser ? currentUser.full_name || currentUser.username || 'مدير' : 'مدير';
-            await supabaseClient.from('activity_log').insert([{
+            const { data, error } = await supabaseClient.from('activity_log').insert([{
                 action_type: actionType,
                 entity_type: entityType,
                 entity_name: entityName || '',
                 details: details || '',
                 performed_by: userName
             }]);
-        } catch (e) { console.error('Error logging activity:', e); }
+            if (error) { console.error('logActivity error:', error.message, error); }
+        } catch (e) { console.error('logActivity exception:', e); }
     }
 
     async function loadActivityLog() {

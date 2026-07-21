@@ -560,6 +560,11 @@
         <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#e67e22;" onclick="switchView('coachAccounting')"><i class="bi bi-calculator"></i> محاسبة المدربين</button></div>
         <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#8e44ad;" onclick="openArchiveModal()"><i class="bi bi-archive"></i> أرشيف الأشهر</button></div>
     </div>
+    <div class="row g-2 mt-1">
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#34495e;" onclick="exportAllData()"><i class="bi bi-download"></i> تصدير نسخة احتياطية</button></div>
+        <div class="col-md-3"><button class="btn btn-mg-primary" style="background:#16a085;" onclick="document.getElementById('importFileInputMain').click()"><i class="bi bi-upload"></i> استيراد بيانات</button></div>
+        <input type="file" id="importFileInputMain" accept=".json" style="display:none;" onchange="importData(event)">
+    </div>
 </div>
 
 <!-- ===================== مودالات ===================== -->
@@ -2378,11 +2383,40 @@
         const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                showToast('✅ تم استعادة النسخة بنجاح', 'success');
+                if (!data.students && !data.coaches) {
+                    showToast('❌ الملف ليس نسخة احتياطية صحيحة', 'danger');
+                    return;
+                }
+                if (!await showConfirm(`استيراد بيانات من ملف "${file.name}"؟ سيتم استبدال البيانات الحالية.`)) return;
+                if (data.students && supabaseClient) {
+                    for (const s of data.students) {
+                        const { id, ...rest } = s;
+                        await supabaseClient.from('students').upsert([rest], { onConflict: 'id' });
+                    }
+                }
+                if (data.coaches && supabaseClient) {
+                    for (const c of data.coaches) {
+                        const { id, ...rest } = c;
+                        await supabaseClient.from('coaches').upsert([rest], { onConflict: 'id' });
+                    }
+                }
+                if (data.transactions && supabaseClient) {
+                    for (const t of data.transactions) {
+                        const { id, ...rest } = t;
+                        await supabaseClient.from('transactions').upsert([rest], { onConflict: 'id' });
+                    }
+                }
+                if (data.poolCard && supabaseClient) {
+                    await supabaseClient.from('pool_card').upsert([{ id: 1, total_hours: data.poolCard.total, remaining_hours: data.poolCard.remaining }], { onConflict: 'id' });
+                }
+                logActivity('استيراد', 'بيانات', file.name, `${(data.students||[]).length} سباح, ${(data.coaches||[]).length} مدرب`);
+                loadAllData();
+                showToast('✅ تم استيراد البيانات بنجاح', 'success');
             } catch (err) {
+                console.error('Import error:', err);
                 showToast('❌ خطأ في قراءة الملف', 'danger');
             }
         };
@@ -3069,6 +3103,7 @@
         a.download = `MG_Backup_${getToday()}.json`;
         a.click();
         URL.revokeObjectURL(url);
+        logActivity('تصدير', 'نسخة احتياطية', `MG_Backup_${getToday()}`, `${students.length} سباح, ${coaches.length} مدرب, ${transactions.length} معاملة`);
         showToast('📥 تم تصدير النسخة الاحتياطية', 'success');
     };
 

@@ -2128,7 +2128,7 @@
         modal.show();
     };
 
-    window.addNewStudent = function() {
+    window.addNewStudent = async function() {
         const name = document.getElementById('newStudentName').value.trim();
         const phone = document.getElementById('newStudentPhone').value.trim();
         const level = document.getElementById('newStudentLevel').value;
@@ -2141,6 +2141,7 @@
             showToast('⚠️ هذا الاسم موجود', 'warning'); return;
         }
 
+        const coachName = coaches.find(c => c.id === coachId)?.name || '';
         const newStudent = {
             name: name,
             phone: phone || 'غير محدد',
@@ -2152,9 +2153,9 @@
             payment_status: 'غير مدفوع',
             payment_method: 'كاش'
         };
-        addStudentToDB(newStudent);
-        logActivity('إضافة', 'سباح', name, `هاتف: ${phone}, مدرب: ${coachName}, نوع: ${type}`);
-        loadAllData();
+        await addStudentToDB(newStudent);
+        await logActivity('إضافة', 'سباح', name, `هاتف: ${phone}, مدرب: ${coachName}, نوع: ${type}`);
+        await loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
         if (modal) modal.hide();
         showToast(`✅ تم إضافة السباح ${name}`, 'success');
@@ -2182,7 +2183,7 @@
         const method = document.getElementById('paymentMethod').value;
         if (!amount || amount <= 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
 
-        updateStudentInDB(studentId, { payment_status: 'مدفوع', payment_method: method });
+        await updateStudentInDB(studentId, { payment_status: 'مدفوع', payment_method: method });
         
         const transData = {
             type: 'revenue',
@@ -2192,9 +2193,9 @@
             transaction_date: getToday(),
             student_id: studentId
         };
-        addTransactionToDB(transData);
-        logActivity('تسجيل', 'دفعة', student.name, `مبلغ: ${formatCurrency(amount)}, طريقة: ${method}`);
-        loadAllData();
+        await addTransactionToDB(transData);
+        await logActivity('تسجيل', 'دفعة', student.name, `مبلغ: ${formatCurrency(amount)}, طريقة: ${method}`);
+        await loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
         if (modal) modal.hide();
         showToast(`✅ تم تسجيل دفع ${formatCurrency(amount)} للسباح ${student.name}`, 'success');
@@ -2210,25 +2211,25 @@
         modal.show();
     };
 
-    window.saveFeeEdit = function() {
+    window.saveFeeEdit = async function() {
         const studentId = parseInt(document.getElementById('editFeeStudentId').value);
         const student = students.find(s => s.id === studentId);
         if (!student) { showToast('❌ لم يتم العثور على السباح', 'danger'); return; }
         const newFee = parseFloat(document.getElementById('editFeeAmount').value);
         if (isNaN(newFee) || newFee < 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
-        updateStudentInDB(studentId, { monthly_fee: newFee });
-        loadAllData();
+        await updateStudentInDB(studentId, { monthly_fee: newFee });
+        await loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('editFeeModal'));
         if (modal) modal.hide();
         showToast(`✅ تم تحديث المبلغ للسباح ${student.name}`, 'success');
     };
 
-    window.toggleStudentStatus = function(id) {
+    window.toggleStudentStatus = async function(id) {
         const student = students.find(s => s.id === id);
         if (!student) return;
         const newStatus = student.active === false ? true : false;
-        updateStudentInDB(id, { active: newStatus });
-        loadAllData();
+        await updateStudentInDB(id, { active: newStatus });
+        await loadAllData();
         showToast(`🔄 تم ${newStatus ? 'تفعيل' : 'تعطيل'} ${student.name}`, 'info');
     };
 
@@ -2236,9 +2237,9 @@
         const student = students.find(s => s.id === id);
         if (!student) return;
         if (!await showConfirm(`حذف "${student.name}" نهائياً؟`)) return;
-        deleteStudentFromDB(id);
-        logActivity('حذف', 'سباح', student.name, 'حذف نهائي');
-        loadAllData();
+        await deleteStudentFromDB(id);
+        await logActivity('حذف', 'سباح', student.name, 'حذف نهائي');
+        await loadAllData();
         showToast(`🗑️ تم حذف ${student.name}`, 'info');
     };
 
@@ -2546,7 +2547,7 @@
         modal.show();
     };
 
-    window.saveCoachFromModal = function() {
+    window.saveCoachFromModal = async function() {
         const id = document.getElementById('editCoachId').value;
         const name = document.getElementById('coachName').value.trim();
         const phone = document.getElementById('coachPhone').value.trim();
@@ -2560,16 +2561,16 @@
         const data = { name, phone, experience, start_date: startDate, rating, notes };
 
         if (id) {
-            updateCoachInDB(parseInt(id), data);
-            logActivity('تعديل', 'مدرب', name, `هاتف: ${phone}, خبرة: ${experience} سنة`);
+            await updateCoachInDB(parseInt(id), data);
+            await logActivity('تعديل', 'مدرب', name, `هاتف: ${phone}, خبرة: ${experience} سنة`);
             showToast(`✅ تم تحديث بيانات ${name}`, 'success');
         } else {
             if (coaches.find(c => c.name === name)) { showToast('⚠️ هذا الاسم موجود', 'warning'); return; }
-            addCoachToDB(data);
-            logActivity('إضافة', 'مدرب', name, `هاتف: ${phone}, خبرة: ${experience} سنة`);
+            await addCoachToDB(data);
+            await logActivity('إضافة', 'مدرب', name, `هاتف: ${phone}, خبرة: ${experience} سنة`);
             showToast(`✅ تم إضافة المدرب ${name}`, 'success');
         }
-        loadAllData();
+        await loadAllData();
         bootstrap.Modal.getInstance(document.getElementById('addEditCoachModal')).hide();
     };
 
@@ -2577,9 +2578,9 @@
         const coach = coaches.find(c => c.id === id);
         if (!coach) return;
         if (!await showConfirm(`حذف المدرب "${coach.name}" نهائياً؟`)) return;
-        deleteCoachFromDB(id);
-        logActivity('حذف', 'مدرب', coach.name, 'حذف نهائي');
-        loadAllData();
+        await deleteCoachFromDB(id);
+        await logActivity('حذف', 'مدرب', coach.name, 'حذف نهائي');
+        await loadAllData();
         showToast(`🗑️ تم حذف المدرب ${coach.name}`, 'info');
     };
 
@@ -3021,9 +3022,9 @@
             showToast('⚠️ لا يمكن حذف المستخدم الحالي', 'danger');
             return;
         }
-        deleteUserFromDB(id);
-        loadAllData();
-        showToast('🗑️ تم حذف المستخدم', 'info');
+        await deleteUserFromDB(id);
+        await logActivity('حذف', 'مستخدم', 'مستخدم #' + id, 'حذف نهائي');
+        await loadAllData();
     };
 
     function renderActivityLog() {

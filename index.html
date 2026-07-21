@@ -288,6 +288,7 @@
                     <button class="tab-btn" onclick="switchView('coaches')" id="tabCoaches">👨‍🏫 المدربين</button>
                     <button class="tab-btn" onclick="switchView('coachAccounting')" id="tabCoachAccounting">📊 محاسبة</button>
                     <button class="tab-btn" onclick="switchView('users')" id="tabUsers" style="display:none;">👥 المستخدمين</button>
+                    <button class="tab-btn" onclick="switchView('activityLog')" id="tabActivityLog">📋 السجل</button>
                     <button class="btn btn-sm btn-outline-light" onclick="logoutUser()"><i class="bi bi-box-arrow-right"></i> خروج</button>
                 </div>
             </div>
@@ -523,6 +524,31 @@
                     <li>ساعات العمل تُحسب من الجدول الأسبوعي الأساسي (بدون استثناءات اليوم)</li>
                     <li>يمكن تعديل الساعات يدوياً من هذه الصفحة</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== سجل العمليات ===================== -->
+    <div class="view-container" id="activityLogView">
+        <div class="schedule-wrapper">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <h6 class="fw-bold mb-0"><i class="bi bi-journal-text text-primary"></i> سجل العمليات</h6>
+                <span class="badge bg-secondary" id="activityLogCount">0 عملية</span>
+            </div>
+            <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="sticky-top" style="background:var(--mg-primary);color:#fff;z-index:1;">
+                        <tr>
+                            <th style="width:150px;">التاريخ والوقت</th>
+                            <th style="width:100px;">العملية</th>
+                            <th style="width:100px;">النوع</th>
+                            <th>العنصر</th>
+                            <th>التفاصيل</th>
+                            <th style="width:100px;">المستخدم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityLogBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -780,6 +806,18 @@
     //
     // إذا لم يكنعمود notes موجود في جدول coaches:
     // ALTER TABLE coaches ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+    //
+    // جدول سجل العمليات:
+    // CREATE TABLE IF NOT EXISTS activity_log (
+    //   id BIGSERIAL PRIMARY KEY,
+    //   action_type TEXT NOT NULL,
+    //   entity_type TEXT NOT NULL,
+    //   entity_name TEXT DEFAULT '',
+    //   details TEXT DEFAULT '',
+    //   performed_by TEXT DEFAULT 'مدير',
+    //   created_at TIMESTAMPTZ DEFAULT NOW()
+    // );
+    // ALTER TABLE activity_log DISABLE ROW LEVEL SECURITY;
     // ========================================================================
 
     // ========================================================================
@@ -830,6 +868,7 @@
     let weeklyTemplate = {};
     let dailyExceptions = {};
     let users = [];
+    let activityLog = [];
 
     // ========================================================================
     // 3. دوال مساعدة
@@ -970,6 +1009,29 @@
             });
             return result;
         } catch (e) { console.error('Exception loading daily exceptions:', e); return {}; }
+    }
+
+    async function logActivity(actionType, entityType, entityName, details) {
+        try {
+            if (!supabaseClient) return;
+            const userName = currentUser ? currentUser.full_name || currentUser.username || 'مدير' : 'مدير';
+            await supabaseClient.from('activity_log').insert([{
+                action_type: actionType,
+                entity_type: entityType,
+                entity_name: entityName || '',
+                details: details || '',
+                performed_by: userName
+            }]);
+        } catch (e) { console.error('Error logging activity:', e); }
+    }
+
+    async function loadActivityLog() {
+        try {
+            if (!supabaseClient) return [];
+            const { data, error } = await supabaseClient.from('activity_log').select('*').order('created_at', { ascending: false }).limit(200);
+            if (error) { console.error('Error loading activity log:', error); return []; }
+            return data || [];
+        } catch (e) { return []; }
     }
 
     // ========================================================================
@@ -1143,6 +1205,7 @@
             users = await loadUsers();
             weeklyTemplate = await loadWeeklyTemplate();
             dailyExceptions = await loadDailyExceptions();
+            activityLog = await loadActivityLog();
 
             if (!dailyViewDate) dailyViewDate = getToday();
             document.getElementById('dailyDatePicker').value = dailyViewDate;
@@ -1153,6 +1216,7 @@
             renderTransactions();
             renderCoaches();
             renderUsers();
+            renderActivityLog();
             updateStatsAndCharts();
         } catch (e) {
             console.error('Error loading data:', e);
@@ -1748,6 +1812,7 @@
         if (!await showConfirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟')) return;
         weeklyTemplate = {};
         supabaseClient.from('weekly_template').delete().neq('id', 0);
+        logActivity('حذف', 'الجدول الأسبوعي', 'الكل', 'مسح شامل لكل الجدول');
         loadAllData();
         showToast('🗑️ تم مسح الجدول الأسبوعي', 'info');
     };
@@ -2049,6 +2114,7 @@
             payment_method: 'كاش'
         };
         addStudentToDB(newStudent);
+        logActivity('إضافة', 'سباح', name, `هاتف: ${phone}, مدرب: ${coachName}, نوع: ${type}`);
         loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
         if (modal) modal.hide();
@@ -2088,7 +2154,7 @@
             student_id: studentId
         };
         addTransactionToDB(transData);
-        
+        logActivity('تسجيل', 'دفعة', student.name, `مبلغ: ${formatCurrency(amount)}, طريقة: ${method}`);
         loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
         if (modal) modal.hide();
@@ -2132,6 +2198,7 @@
         if (!student) return;
         if (!await showConfirm(`حذف "${student.name}" نهائياً؟`)) return;
         deleteStudentFromDB(id);
+        logActivity('حذف', 'سباح', student.name, 'حذف نهائي');
         loadAllData();
         showToast(`🗑️ تم حذف ${student.name}`, 'info');
     };
@@ -2218,6 +2285,7 @@
             transaction_date: getToday()
         };
         addTransactionToDB(transData);
+        logActivity('إضافة', 'عملية مالية', category, `${type === 'revenue' ? 'إيراد' : 'مصروف'}: ${formatCurrency(amount)}`);
         loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
         if (modal) modal.hide();
@@ -2425,10 +2493,12 @@
 
         if (id) {
             updateCoachInDB(parseInt(id), data);
+            logActivity('تعديل', 'مدرب', name, `هاتف: ${phone}, خبرة: ${experience} سنة`);
             showToast(`✅ تم تحديث بيانات ${name}`, 'success');
         } else {
             if (coaches.find(c => c.name === name)) { showToast('⚠️ هذا الاسم موجود', 'warning'); return; }
             addCoachToDB(data);
+            logActivity('إضافة', 'مدرب', name, `هاتف: ${phone}, خبرة: ${experience} سنة`);
             showToast(`✅ تم إضافة المدرب ${name}`, 'success');
         }
         loadAllData();
@@ -2440,6 +2510,7 @@
         if (!coach) return;
         if (!await showConfirm(`حذف المدرب "${coach.name}" نهائياً؟`)) return;
         deleteCoachFromDB(id);
+        logActivity('حذف', 'مدرب', coach.name, 'حذف نهائي');
         loadAllData();
         showToast(`🗑️ تم حذف المدرب ${coach.name}`, 'info');
     };
@@ -2513,6 +2584,7 @@
             transaction_date: getToday()
         };
         addTransactionToDB(transData);
+        logActivity('إضافة', 'عملية مالية', category, `${type === 'revenue' ? 'إيراد' : 'مصروف'}: ${formatCurrency(amount)}`);
         loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
         if (modal) modal.hide();
@@ -2588,6 +2660,7 @@
         };
 
         addClosureToDB(closureData);
+        logActivity('إقفال', 'شهر', monthVal, `إيراد: ${formatCurrency(totalRev)}, مصروف: ${formatCurrency(totalExp)}, صافي: ${formatCurrency(totalRev - totalExp)}`);
 
         if (supabaseClient) {
             supabaseClient.from('transactions').delete().gte('transaction_date', monthPrefix + '-01').lt('transaction_date', monthPrefix + '-32');
@@ -2853,6 +2926,35 @@
         showToast('🗑️ تم حذف المستخدم', 'info');
     };
 
+    function renderActivityLog() {
+        const tbody = document.getElementById('activityLogBody');
+        const countEl = document.getElementById('activityLogCount');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const actionIcons = { 'إضافة': '➕', 'تعديل': '✏️', 'حذف': '🗑️', 'تسجيل': '📝', 'إقفال': '🔒', 'تصدير': '📥' };
+        const actionColors = { 'إضافة': '#27ae60', 'تعديل': '#f39c12', 'حذف': '#e74c3c', 'تسجيل': '#2980b9', 'إقفال': '#8e44ad', 'تصدير': '#34495e' };
+        if (activityLog.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد عمليات مسجلة بعد</td></tr>';
+        } else {
+            activityLog.forEach(log => {
+                const tr = document.createElement('tr');
+                const dateStr = log.created_at ? new Date(log.created_at).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+                const icon = actionIcons[log.action_type] || '📌';
+                const color = actionColors[log.action_type] || '#666';
+                tr.innerHTML = `
+                    <td style="font-size:0.8rem;">${dateStr}</td>
+                    <td><span class="badge" style="background:${color};color:#fff;">${icon} ${log.action_type}</span></td>
+                    <td>${log.entity_type}</td>
+                    <td class="fw-bold">${log.entity_name || '-'}</td>
+                    <td style="font-size:0.8rem;">${log.details || '-'}</td>
+                    <td style="font-size:0.8rem;">${log.performed_by || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        if (countEl) countEl.textContent = `${activityLog.length} عملية`;
+    }
+
     // ========================================================================
     // 17. تحديث الإحصائيات
     // ========================================================================
@@ -2917,7 +3019,8 @@
             accounts: { container: 'accountsView', tab: 'tabAccounts', render: renderTransactions },
             coaches: { container: 'coachesView', tab: 'tabCoaches', render: renderCoaches },
             coachAccounting: { container: 'coachAccountingView', tab: 'tabCoachAccounting', render: renderCoachAccounting },
-            users: { container: 'usersView', tab: 'tabUsers', render: renderUsers }
+            users: { container: 'usersView', tab: 'tabUsers', render: renderUsers },
+            activityLog: { container: 'activityLogView', tab: 'tabActivityLog', render: renderActivityLog }
         };
         const target = map[view];
         if (target) {

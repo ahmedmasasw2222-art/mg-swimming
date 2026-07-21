@@ -2175,7 +2175,7 @@
         modal.show();
     };
 
-    window.recordPayment = function() {
+    window.recordPayment = async function() {
         const studentId = parseInt(document.getElementById('paymentStudentId').value);
         const student = students.find(s => s.id === studentId);
         if (!student) { showToast('❌ لم يتم العثور على السباح', 'danger'); return; }
@@ -2380,7 +2380,7 @@
         showToast('📥 تم تصدير التقرير الشهري', 'success');
     };
 
-    window.importData = function(event) {
+    window.importData = async function(event) {
         const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
@@ -2475,7 +2475,7 @@
         return (attended * 100) + (available * 50);
     }
 
-    window.calculateSalaries = function() {
+    window.calculateSalaries = async function() {
         let msg = '🧾 مستحقات المدربين (الفعلية):\n';
         let total = 0;
         coaches.forEach((coach) => {

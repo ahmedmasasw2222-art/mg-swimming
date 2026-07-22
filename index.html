@@ -246,6 +246,30 @@
         .subscription-warning { background: #fff3cd; color: #856404; }
         .subscription-expired { background: #f8d7da; color: #721c24; }
         @media (max-width: 768px) { .notif-dropdown { width: calc(100vw - 30px); left: 10px; } .notif-bell { left: 10px; } }
+
+        /* أزرار الإجراءات العصرية */
+        .action-btn-group { display: inline-flex; gap: 4px; align-items: center; }
+        .action-btn { width: 32px; height: 32px; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+        .action-btn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: 0.25s; }
+        .action-btn:hover::after { background: rgba(255,255,255,0.15); }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .action-btn:active { transform: translateY(0) scale(0.95); }
+        .action-btn-edit { background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; }
+        .action-btn-edit:hover { box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
+        .action-btn-pay { background: linear-gradient(135deg, #27ae60, #2ecc71); color: #fff; }
+        .action-btn-pay:hover { box-shadow: 0 4px 15px rgba(39,174,96,0.4); }
+        .action-btn-status { background: linear-gradient(135deg, #f39c12, #e67e22); color: #fff; }
+        .action-btn-status:hover { box-shadow: 0 4px 15px rgba(243,156,18,0.4); }
+        .action-btn-delete { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+        .action-btn-delete:hover { box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
+        .action-btn-dropdown { position: relative; display: inline-block; }
+        .action-dropdown-menu { display: none; position: absolute; left: 0; top: 100%; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); padding: 6px; z-index: 1000; min-width: 160px; border: 1px solid #eee; }
+        .action-dropdown-menu.show { display: block; animation: dropIn 0.2s ease; }
+        .action-dropdown-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: 0.15s; border: none; background: none; width: 100%; text-align: right; }
+        .action-dropdown-item:hover { background: #f0f0f0; }
+        .action-dropdown-item i { font-size: 0.9rem; }
+        @keyframes dropIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) { .action-btn { width: 28px; height: 28px; font-size: 0.65rem; } }
     </style>
 </head>
 <body>
@@ -653,6 +677,119 @@
                 <div class="mb-2"><label class="form-label fw-bold">المبلغ الجديد</label><input type="number" class="form-control" id="editFeeAmount"></div>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveFeeEdit()">حفظ</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- تعديل شامل للسباح -->
+<div class="modal fade" id="editStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;">
+            <div class="modal-header" style="background:linear-gradient(135deg,var(--mg-primary),#1a4a6b);color:#fff;border:none;">
+                <h6 class="modal-title fw-bold"><i class="bi bi-person-gear"></i> تعديل بيانات السباح</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editStudentId">
+
+                <div class="row g-3">
+                    <!-- الاسم -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold"><i class="bi bi-person text-primary"></i> الاسم *</label>
+                        <input type="text" class="form-control" id="editStudentName" style="border-radius:10px;">
+                    </div>
+                    <!-- التليفون -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold"><i class="bi bi-telephone text-success"></i> التليفون</label>
+                        <input type="text" class="form-control" id="editStudentPhone" style="border-radius:10px;">
+                    </div>
+
+                    <!-- المستوى -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-bar-chart text-info"></i> المستوى</label>
+                        <select class="form-select" id="editStudentLevel" style="border-radius:10px;">
+                            <option value="مبتدئ">مبتدئ</option>
+                            <option value="متوسط">متوسط</option>
+                            <option value="متقدم">متقدم</option>
+                        </select>
+                    </div>
+                    <!-- النوع -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-tag text-warning"></i> النوع</label>
+                        <select class="form-select" id="editStudentType" style="border-radius:10px;">
+                            <option value="private1">برايفت 1</option>
+                            <option value="private2">برايفت 2</option>
+                            <option value="group">جروب</option>
+                        </select>
+                    </div>
+                    <!-- الكابتن -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-person-video2 text-danger"></i> الكابتن</label>
+                        <select class="form-select" id="editStudentCoach" style="border-radius:10px;"></select>
+                    </div>
+
+                    <!-- المبلغ الشهري -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-cash-stack text-success"></i> المبلغ الشهري</label>
+                        <input type="number" class="form-control" id="editStudentFee" style="border-radius:10px;" min="0">
+                    </div>
+                    <!-- حالة الدفع -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-credit-card text-primary"></i> حالة الدفع</label>
+                        <select class="form-select" id="editStudentPaymentStatus" style="border-radius:10px;">
+                            <option value="غير مدفوع">غير مدفوع</option>
+                            <option value="مدفوع">مدفوع</option>
+                            <option value="متأخر">متأخر</option>
+                        </select>
+                    </div>
+                    <!-- طريقة الدفع -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-wallet2 text-info"></i> طريقة الدفع</label>
+                        <select class="form-select" id="editStudentPaymentMethod" style="border-radius:10px;">
+                            <option value="كاش">كاش</option>
+                            <option value="إنستا باي">إنستا باي</option>
+                        </select>
+                    </div>
+
+                    <!-- بداية الاشتراك -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-calendar-event text-success"></i> بداية الاشتراك</label>
+                        <input type="date" class="form-control" id="editStudentSubStart" style="border-radius:10px;">
+                    </div>
+                    <!-- نهاية الاشتراك -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-calendar-check text-danger"></i> نهاية الاشتراك</label>
+                        <input type="date" class="form-control" id="editStudentSubEnd" style="border-radius:10px;">
+                    </div>
+                    <!-- آخر دفعة -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-calendar-minus text-warning"></i> آخر دفعة</label>
+                        <input type="date" class="form-control" id="editStudentLastPayment" style="border-radius:10px;">
+                    </div>
+
+                    <!-- عدد الحصص الكلي -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-123 text-primary"></i> عدد الحصص الكلي</label>
+                        <input type="number" class="form-control" id="editStudentTotalSessions" style="border-radius:10px;" min="0">
+                    </div>
+                    <!-- الحصص المستخدمة -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-check2-all text-success"></i> الحصص المستخدمة</label>
+                        <input type="number" class="form-control" id="editStudentUsedSessions" style="border-radius:10px;" min="0">
+                    </div>
+                    <!-- تليفون ولي الأمر -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold"><i class="bi bi-people text-warning"></i> تليفون ولي الأمر</label>
+                        <input type="text" class="form-control" id="editStudentGuardian" style="border-radius:10px;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-3" style="background:#f8f9fa;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius:10px;">إلغاء</button>
+                <button class="btn btn-mg-gold" onclick="saveStudentEdit()" style="border-radius:10px;padding:8px 28px;font-weight:700;">
+                    <i class="bi bi-check-lg"></i> حفظ التعديلات
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -2189,10 +2326,12 @@
                 <td><span class="count-badge count-badge-present">${monthAttendance}</span></td>
                 <td><span class="count-badge count-badge-absent">${monthAbsence}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-success" onclick="openPaymentModal(${s.id})" title="دفع"><i class="bi bi-cash"></i></button>
-                    <button class="btn btn-sm btn-warning" onclick="openEditFeeModal(${s.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-info" onclick="cycleStudentStatus(${s.id})" title="تغيير الحالة"><i class="bi bi-arrow-repeat"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${s.id})" title="حذف"><i class="bi bi-trash"></i></button>
+                    <div class="action-btn-group">
+                        <button class="action-btn action-btn-edit" onclick="openEditStudentModal(${s.id})" title="تعديل البيانات"><i class="bi bi-pencil-square"></i></button>
+                        <button class="action-btn action-btn-pay" onclick="openPaymentModal(${s.id})" title="تسجيل دفعة"><i class="bi bi-cash-stack"></i></button>
+                        <button class="action-btn action-btn-status" onclick="cycleStudentStatus(${s.id})" title="تغيير الحالة"><i class="bi bi-arrow-repeat"></i></button>
+                        <button class="action-btn action-btn-delete" onclick="deleteStudent(${s.id})" title="حذف"><i class="bi bi-trash3"></i></button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -2314,6 +2453,95 @@
         const modal = bootstrap.Modal.getInstance(document.getElementById('editFeeModal'));
         if (modal) modal.hide();
         showToast(`✅ تم تحديث المبلغ للسباح ${student.name}`, 'success');
+    };
+
+    window.openEditStudentModal = function(studentId) {
+        const s = students.find(st => st.id === studentId);
+        if (!s) return;
+        document.getElementById('editStudentId').value = studentId;
+        document.getElementById('editStudentName').value = s.name || '';
+        document.getElementById('editStudentPhone').value = s.phone || '';
+        document.getElementById('editStudentLevel').value = s.level || 'متوسط';
+        document.getElementById('editStudentType').value = s.type || 'private1';
+        document.getElementById('editStudentFee').value = s.monthly_fee || 0;
+        document.getElementById('editStudentPaymentStatus').value = s.payment_status || 'غير مدفوع';
+        document.getElementById('editStudentPaymentMethod').value = s.payment_method || 'كاش';
+        document.getElementById('editStudentSubStart').value = s.subscription_start || '';
+        document.getElementById('editStudentSubEnd').value = s.subscription_end || '';
+        document.getElementById('editStudentLastPayment').value = s.last_payment_date || '';
+        document.getElementById('editStudentTotalSessions').value = s.total_sessions || 0;
+        document.getElementById('editStudentUsedSessions').value = s.used_sessions || 0;
+        document.getElementById('editStudentGuardian').value = s.guardian_phone || '';
+
+        const coachSelect = document.getElementById('editStudentCoach');
+        coachSelect.innerHTML = '';
+        coaches.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (c.id === s.coach_id) opt.selected = true;
+            coachSelect.appendChild(opt);
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+        modal.show();
+    };
+
+    window.saveStudentEdit = async function() {
+        const studentId = parseInt(document.getElementById('editStudentId').value);
+        const student = students.find(s => s.id === studentId);
+        if (!student) { showToast('❌ لم يتم العثور على السباح', 'danger'); return; }
+
+        const name = document.getElementById('editStudentName').value.trim();
+        const phone = document.getElementById('editStudentPhone').value.trim();
+        const level = document.getElementById('editStudentLevel').value;
+        const type = document.getElementById('editStudentType').value;
+        const coachId = parseInt(document.getElementById('editStudentCoach').value);
+        const fee = parseFloat(document.getElementById('editStudentFee').value) || 0;
+        const payStatus = document.getElementById('editStudentPaymentStatus').value;
+        const payMethod = document.getElementById('editStudentPaymentMethod').value;
+        const subStart = document.getElementById('editStudentSubStart').value;
+        const subEnd = document.getElementById('editStudentSubEnd').value;
+        const lastPay = document.getElementById('editStudentLastPayment').value;
+        const totalSessions = parseInt(document.getElementById('editStudentTotalSessions').value) || 0;
+        const usedSessions = parseInt(document.getElementById('editStudentUsedSessions').value) || 0;
+        const guardian = document.getElementById('editStudentGuardian').value.trim();
+
+        if (!validateRequired(name, 'اسم السباح')) return;
+        if (fee < 0) { showToast('❌ المبلغ لا يمكن أن يكون سالباً', 'danger'); return; }
+        if (subStart && subEnd && subEnd < subStart) {
+            showToast('❌ تاريخ النهاية لا يمكن أن يسبق تاريخ البداية', 'danger');
+            return;
+        }
+        if (usedSessions > totalSessions && totalSessions > 0) {
+            showToast('❌ الحصص المستخدمة لا يمكن أن تتجاوز العدد الكلي', 'danger');
+            return;
+        }
+
+        const updates = {
+            name: name,
+            phone: phone || 'غير محدد',
+            level: level,
+            type: type,
+            coach_id: coachId,
+            monthly_fee: fee,
+            payment_status: payStatus,
+            payment_method: payMethod,
+            subscription_start: subStart,
+            subscription_end: subEnd,
+            last_payment_date: lastPay,
+            total_sessions: totalSessions,
+            used_sessions: usedSessions,
+            guardian_phone: guardian
+        };
+
+        await updateStudentInDB(studentId, updates);
+        await logActivity('تعديل', 'سباح', name, `تم تعديل بيانات السباح: ${name}`);
+        await loadAllData();
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم حفظ تعديلات السباح ${name}`, 'success');
     };
 
     window.toggleStudentStatus = async function(id) {

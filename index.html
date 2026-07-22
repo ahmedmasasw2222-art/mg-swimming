@@ -855,6 +855,9 @@
     //   created_at TIMESTAMPTZ DEFAULT NOW()
     // );
     // ALTER TABLE data_archives DISABLE ROW LEVEL SECURITY;
+    //
+    // عمود حالة السباح (اختياري - لدعم 3 حالات: نشط/متوقف/منتهي):
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS status text DEFAULT 'نشط';
     // ========================================================================
 
     // ========================================================================
@@ -2188,7 +2191,6 @@
             type: type,
             level: level,
             active: true,
-            status: 'نشط',
             monthly_fee: monthlyFee,
             payment_status: 'غير مدفوع',
             payment_method: 'كاش'
@@ -2268,25 +2270,24 @@
         const student = students.find(s => s.id === id);
         if (!student) return;
         const currentStatus = getStudentStatus(student);
-        const newStatus = currentStatus === 'نشط' ? 'متوقف' : 'نشط';
-        const newActive = newStatus === 'نشط';
-        await updateStudentInDB(id, { active: newActive, status: newStatus });
+        const newActive = currentStatus !== 'نشط';
+        await updateStudentInDB(id, { active: newActive });
         await loadAllData();
-        showToast(`🔄 تم تغيير حالة ${student.name} إلى "${newStatus}"`, 'info');
+        const newLabel = newActive ? 'نشط' : 'متوقف';
+        showToast(`🔄 تم تغيير حالة ${student.name} إلى "${newLabel}"`, 'info');
     };
 
     window.cycleStudentStatus = async function(id) {
         const student = students.find(s => s.id === id);
         if (!student) return;
         const currentStatus = getStudentStatus(student);
-        let newStatus;
-        if (currentStatus === 'نشط') newStatus = 'متوقف';
-        else if (currentStatus === 'متوقف') newStatus = 'منتهي الاشتراك';
-        else newStatus = 'نشط';
-        const newActive = newStatus === 'نشط';
-        await updateStudentInDB(id, { active: newActive, status: newStatus });
+        let newActive;
+        if (currentStatus === 'نشط') newActive = false;
+        else newActive = true;
+        await updateStudentInDB(id, { active: newActive });
         await loadAllData();
-        showToast(`🔄 حالة ${student.name}: "${newStatus}"`, 'info');
+        const newLabel = newActive ? 'نشط' : 'متوقف';
+        showToast(`🔄 حالة ${student.name}: "${newLabel}"`, 'info');
     };
 
     window.deleteStudent = async function(id) {

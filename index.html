@@ -675,8 +675,22 @@
         <div class="modal-content">
             <div class="modal-header"><h6 class="modal-title">💰 إيراد / مصروف</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
-                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">النوع</label><select class="form-select" id="financeType"><option value="revenue">إيراد</option><option value="expense">مصروف</option></select></div>
-                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">التصنيف</label><select class="form-select" id="financeCategory" onchange="togglePoolPurchaseOptions()"><option value="اشتراك شهرى">اشتراك</option><option value="إيجار مايه">إيجار مايه</option><option value="رواتب مدربين">رواتب</option><option value="أخرى">أخرى</option></select></div>
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">النوع</label><select class="form-select" id="financeType" onchange="updateFinanceCategories()"><option value="revenue">إيراد</option><option value="expense">مصروف</option></select></div>
+                <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">التصنيف</label>
+                    <div class="input-group">
+                        <select class="form-select" id="financeCategory" onchange="togglePoolPurchaseOptions()"></select>
+                        <button class="btn btn-sm btn-outline-primary" type="button" onclick="showAddCategoryInput()" title="إضافة تصنيف جديد">+</button>
+                    </div>
+                    <div id="addCategorySection" style="display:none;" class="mt-1">
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="newCategoryName" placeholder="اسم التصنيف الجديد">
+                            <button class="btn btn-sm btn-success" onclick="addCustomCategory()">حفظ</button>
+                            <button class="btn btn-sm btn-secondary" onclick="hideAddCategoryInput()">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2" id="financeStudentSection" style="display:none;"><label class="fw-bold" style="font-size:0.8rem;">السباح المرتبط</label><select class="form-select" id="financeStudentId"><option value="">بدون</option></select></div>
+                <div class="mb-2" id="financeCoachSection" style="display:none;"><label class="fw-bold" style="font-size:0.8rem;">المدرب / الجهة</label><select class="form-select" id="financeCoachId"><option value="">بدون</option></select></div>
                 <div id="poolPurchaseSection" style="display:none;" class="mb-2 p-2 bg-light rounded-3">
                     <label class="fw-bold d-block mb-2" style="font-size:0.8rem;"><i class="bi bi-credit-card-2-front text-primary"></i> حجم كارت الماية</label>
                     <div class="row g-2">
@@ -2586,6 +2600,97 @@
     };
 
     // ========================================================================
+    // 15.5 نظام التصنيفات الديناميكية
+    // ========================================================================
+    const DEFAULT_REVENUE_CATEGORIES = ['اشتراكات سباحين', 'حصص خاصة', 'other_إيرادات_أخرى'];
+    const DEFAULT_EXPENSE_CATEGORIES = ['رواتب مدربين', 'إيجار مايه', 'أدوات وصيانة', 'فواتير', 'other_مصروفات_أخرى'];
+
+    function getCategories() {
+        let cats = JSON.parse(localStorage.getItem('mg_custom_categories') || '{}');
+        if (!cats.revenue) cats.revenue = [...DEFAULT_REVENUE_CATEGORIES];
+        if (!cats.expense) cats.expense = [...DEFAULT_EXPENSE_CATEGORIES];
+        return cats;
+    }
+    function saveCategories(cats) { localStorage.setItem('mg_custom_categories', JSON.stringify(cats)); }
+
+    window.updateFinanceCategories = function() {
+        const type = document.getElementById('financeType').value;
+        const select = document.getElementById('financeCategory');
+        const cats = getCategories();
+        const list = type === 'revenue' ? cats.revenue : cats.expense;
+        select.innerHTML = '';
+        list.forEach(cat => {
+            const opt = document.createElement('option');
+            const display = cat.startsWith('other_') ? cat.split('_')[2] : cat;
+            opt.value = cat;
+            opt.textContent = display;
+            select.appendChild(opt);
+        });
+        togglePoolPurchaseOptions();
+        updateFinanceLinkFields();
+    };
+
+    window.updateFinanceLinkFields = function() {
+        const type = document.getElementById('financeType').value;
+        const category = document.getElementById('financeCategory').value;
+        const studentSection = document.getElementById('financeStudentSection');
+        const coachSection = document.getElementById('financeCoachSection');
+        studentSection.style.display = 'none';
+        coachSection.style.display = 'none';
+        if (type === 'revenue' && category.includes('اشتراكات')) {
+            const select = document.getElementById('financeStudentId');
+            select.innerHTML = '<option value="">بدون</option>';
+            students.filter(s => s.active !== false).forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} (${coaches.find(c => c.id === s.coach_id)?.name || ''})`;
+                select.appendChild(opt);
+            });
+            studentSection.style.display = 'block';
+        } else if (type === 'expense' && category.includes('رواتب')) {
+            const select = document.getElementById('financeCoachId');
+            select.innerHTML = '<option value="">بدون</option>';
+            coaches.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+            coachSection.style.display = 'block';
+        }
+    };
+
+    window.showAddCategoryInput = function() {
+        document.getElementById('addCategorySection').style.display = 'block';
+        document.getElementById('newCategoryName').focus();
+    };
+    window.hideAddCategoryInput = function() {
+        document.getElementById('addCategorySection').style.display = 'none';
+        document.getElementById('newCategoryName').value = '';
+    };
+    window.addCustomCategory = function() {
+        const name = document.getElementById('newCategoryName').value.trim();
+        if (!name) { showToast('✋ أدخل اسم التصنيف', 'danger'); return; }
+        const type = document.getElementById('financeType').value;
+        const cats = getCategories();
+        const list = type === 'revenue' ? cats.revenue : cats.expense;
+        if (list.includes(name)) { showToast('⚠️ التصنيف موجود', 'warning'); return; }
+        list.push(name);
+        if (type === 'revenue') cats.revenue = list; else cats.expense = list;
+        saveCategories(cats);
+        updateFinanceCategories();
+        hideAddCategoryInput();
+        showToast('✅ تم إضافة التصنيف', 'success');
+    };
+
+    // Override finance modal open to populate link fields
+    const origOpenFinance = window.openFinanceModal;
+    window.openFinanceModal = function() {
+        if (origOpenFinance) origOpenFinance();
+        updateFinanceCategories();
+    };
+
+    // ========================================================================
     // 15.6 شراء كارت الماية
     // ========================================================================
     let selectedPoolHours = 0;
@@ -2593,7 +2698,7 @@
     window.togglePoolPurchaseOptions = function() {
         const category = document.getElementById('financeCategory').value;
         const section = document.getElementById('poolPurchaseSection');
-        if (category === 'إيجار مايه') {
+        if (category.includes('إيجار مايه')) {
             section.style.display = 'block';
         } else {
             section.style.display = 'none';
@@ -2601,6 +2706,7 @@
             document.querySelectorAll('.pool-purchase-option').forEach(el => el.classList.remove('selected'));
             document.getElementById('customPoolHours').value = '';
         }
+        updateFinanceLinkFields();
     };
 
     window.selectPoolOption = function(el, hours) {
@@ -2621,10 +2727,12 @@
         const category = document.getElementById('financeCategory').value;
         const amount = parseFloat(document.getElementById('financeAmount').value);
         const desc = document.getElementById('financeDesc').value.trim();
+        const studentId = document.getElementById('financeStudentId').value;
+        const coachId = document.getElementById('financeCoachId').value;
 
         if (!amount || amount <= 0) { showToast('❌ أدخل مبلغ صحيح', 'danger'); return; }
 
-        if (type === 'expense' && category === 'إيجار مايه' && selectedPoolHours > 0) {
+        if (type === 'expense' && category.includes('إيجار مايه') && selectedPoolHours > 0) {
             const newTotal = (poolCard.total || 100) + selectedPoolHours;
             const newRemaining = (poolCard.remaining || 100) + selectedPoolHours;
             poolCard.total = newTotal;
@@ -2634,7 +2742,7 @@
             selectedPoolHours = 0;
             document.querySelectorAll('.pool-purchase-option').forEach(e => e.classList.remove('selected'));
             document.getElementById('customPoolHours').value = '';
-        } else if (type === 'expense' && category === 'إيجار مايه') {
+        } else if (type === 'expense' && category.includes('إيجار مايه')) {
             const hours = Math.round(amount / 55);
             if (hours > 0) {
                 const newTotal = (poolCard.total || 100) + hours;
@@ -2651,8 +2759,20 @@
             category: category,
             amount: amount,
             description: desc || category,
-            transaction_date: getToday()
+            transaction_date: getToday(),
+            student_id: studentId ? parseInt(studentId) : null,
+            coach_id: coachId ? parseInt(coachId) : null
         };
+        await addTransactionToDB(transData);
+        await logActivity('إضافة', 'عملية مالية', category, `${type === 'revenue' ? 'إيراد' : 'مصروف'}: ${formatCurrency(amount)}`);
+        await loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
+        if (modal) modal.hide();
+        document.getElementById('financeAmount').value = '';
+        document.getElementById('financeDesc').value = '';
+        document.getElementById('poolPurchaseSection').style.display = 'none';
+        showToast(`✅ تم تسجيل ${type === 'revenue' ? 'إيراد' : 'مصروف'}`, 'success');
+    };
         addTransactionToDB(transData);
         logActivity('إضافة', 'عملية مالية', category, `${type === 'revenue' ? 'إيراد' : 'مصروف'}: ${formatCurrency(amount)}`);
         loadAllData();
@@ -3158,6 +3278,13 @@
 
         console.log('✅ MG Private Swimming - النظام جاهز للاتصال بـ Supabase');
         console.log('📌 تم استخدام URL:', SUPABASE_URL);
+
+        const financeModal = document.getElementById('financeModal');
+        if (financeModal) {
+            financeModal.addEventListener('show.bs.modal', function() {
+                updateFinanceCategories();
+            });
+        }
     });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

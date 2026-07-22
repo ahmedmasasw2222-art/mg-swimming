@@ -184,7 +184,8 @@
         .student-table-wrapper { overflow-x: auto; }
         .student-search-box { max-width: 260px; }
         .status-badge-active { background: #d4edda; color: #155724; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; }
-        .status-badge-inactive { background: #f8d7da; color: #721c24; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; }
+        .status-badge-paused { background: #fff3cd; color: #856404; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; }
+        .status-badge-expired { background: #f8d7da; color: #721c24; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; }
         .type-badge-p1 { background: #2ecc71; color: #fff; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
         .type-badge-p2 { background: #5bc0de; color: #fff; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
         .type-badge-g { background: #f1c40f; color: #2c3e50; padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; }
@@ -408,6 +409,12 @@
                 <h6 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary"></i> إدارة السباحين</h6>
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <input type="text" class="form-control form-control-sm student-search-box" id="studentSearchInput" placeholder="🔍 بحث بالاسم..." oninput="filterStudents()">
+                    <select class="form-select form-select-sm" id="statusFilter" onchange="filterStudents()" style="max-width:120px;">
+                        <option value="all">كل الحالات</option>
+                        <option value="active">نشط</option>
+                        <option value="paused">متوقف</option>
+                        <option value="expired">منتهي</option>
+                    </select>
                     <select class="form-select form-select-sm" id="paymentFilter" onchange="filterStudents()" style="max-width:120px;">
                         <option value="all">الكل</option>
                         <option value="paid">مدفوع</option>
@@ -1569,7 +1576,7 @@
     function populateCellStudentSelect() {
         const select = document.getElementById('cellStudentSelect');
         select.innerHTML = '';
-        const activeStudents = students.filter(s => s.active !== false);
+        const activeStudents = students.filter(s => isStudentActive(s));
         if (activeStudents.length === 0) {
             select.innerHTML = '<option value="">لا يوجد سباحين نشطين</option>';
             return;
@@ -1924,7 +1931,7 @@
                 }
                 if (data && !data.isUnavailable && data.students && data.students.length > 0) {
                     data.students.forEach(sname => {
-                        const student = students.find(st => st.name === sname && st.active !== false);
+                        const student = students.find(st => st.name === sname && isStudentActive(st));
                         if (student) {
                             expected.push({
                                 studentId: student.id,
@@ -2064,13 +2071,26 @@
     // ========================================================================
     // 13. إدارة السباحين
     // ========================================================================
+    function getStudentStatus(s) {
+        if (s.status) return s.status;
+        return s.active !== false ? 'نشط' : 'متوقف';
+    }
+
+    function isStudentActive(s) {
+        return getStudentStatus(s) === 'نشط';
+    }
+
     function renderStudents() {
         const searchTerm = document.getElementById('studentSearchInput').value.toLowerCase().trim();
         const paymentFilter = document.getElementById('paymentFilter').value;
+        const statusFilter = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : 'all';
         const tbody = document.getElementById('studentsTableBody');
         tbody.innerHTML = '';
         let filtered = students;
         if (searchTerm) filtered = filtered.filter(s => s.name.toLowerCase().includes(searchTerm));
+        if (statusFilter === 'active') filtered = filtered.filter(s => getStudentStatus(s) === 'نشط');
+        else if (statusFilter === 'paused') filtered = filtered.filter(s => getStudentStatus(s) === 'متوقف');
+        else if (statusFilter === 'expired') filtered = filtered.filter(s => getStudentStatus(s) === 'منتهي الاشتراك');
         if (paymentFilter === 'paid') filtered = filtered.filter(s => s.payment_status === 'مدفوع');
         else if (paymentFilter === 'unpaid') filtered = filtered.filter(s => s.payment_status === 'غير مدفوع');
         else if (paymentFilter === 'late') filtered = filtered.filter(s => s.payment_status === 'متأخر');
@@ -2089,7 +2109,11 @@
 
         filtered.forEach((s, index) => {
             const tr = document.createElement('tr');
-            const statusBadge = s.active !== false ? `<span class="status-badge-active"><i class="bi bi-check-circle"></i> نشط</span>` : `<span class="status-badge-inactive"><i class="bi bi-x-circle"></i> غير نشط</span>`;
+            const statusVal = getStudentStatus(s);
+            let statusBadge;
+            if (statusVal === 'نشط') statusBadge = '<span class="status-badge-active"><i class="bi bi-check-circle"></i> نشط</span>';
+            else if (statusVal === 'متوقف') statusBadge = '<span class="status-badge-paused"><i class="bi bi-pause-circle"></i> متوقف</span>';
+            else statusBadge = '<span class="status-badge-expired"><i class="bi bi-x-circle"></i> منتهي</span>';
             const typeBadge = s.type === 'private1' ? `<span class="type-badge-p1">برايفت 1</span>` : s.type === 'private2' ? `<span class="type-badge-p2">برايفت 2</span>` : `<span class="type-badge-g">جروب</span>`;
             const coachName = coaches.find(c => c.id === s.coach_id)?.name || 'غير محدد';
             let paymentBadge = '';
@@ -2114,7 +2138,7 @@
                 <td>
                     <button class="btn btn-sm btn-success" onclick="openPaymentModal(${s.id})" title="دفع"><i class="bi bi-cash"></i></button>
                     <button class="btn btn-sm btn-warning" onclick="openEditFeeModal(${s.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-${s.active !== false ? 'warning' : 'success'}" onclick="toggleStudentStatus(${s.id})" title="${s.active !== false ? 'تعطيل' : 'تفعيل'}"><i class="bi ${s.active !== false ? 'bi-pause-circle' : 'bi-play-circle'}"></i></button>
+                    <button class="btn btn-sm btn-outline-info" onclick="cycleStudentStatus(${s.id})" title="تغيير الحالة"><i class="bi bi-arrow-repeat"></i></button>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${s.id})" title="حذف"><i class="bi bi-trash"></i></button>
                 </td>
             `;
@@ -2152,7 +2176,7 @@
         const monthlyFee = parseFloat(document.getElementById('newStudentFee').value) || 0;
 
         if (!name) { showToast('✋ أدخل اسم السباح', 'danger'); return; }
-        if (students.find(s => s.name === name && s.active !== false)) {
+        if (students.find(s => s.name === name && isStudentActive(s))) {
             showToast('⚠️ هذا الاسم موجود', 'warning'); return;
         }
 
@@ -2164,6 +2188,7 @@
             type: type,
             level: level,
             active: true,
+            status: 'نشط',
             monthly_fee: monthlyFee,
             payment_status: 'غير مدفوع',
             payment_method: 'كاش'
@@ -2242,18 +2267,46 @@
     window.toggleStudentStatus = async function(id) {
         const student = students.find(s => s.id === id);
         if (!student) return;
-        const newStatus = student.active === false ? true : false;
-        await updateStudentInDB(id, { active: newStatus });
+        const currentStatus = getStudentStatus(student);
+        const newStatus = currentStatus === 'نشط' ? 'متوقف' : 'نشط';
+        const newActive = newStatus === 'نشط';
+        await updateStudentInDB(id, { active: newActive, status: newStatus });
         await loadAllData();
-        showToast(`🔄 تم ${newStatus ? 'تفعيل' : 'تعطيل'} ${student.name}`, 'info');
+        showToast(`🔄 تم تغيير حالة ${student.name} إلى "${newStatus}"`, 'info');
+    };
+
+    window.cycleStudentStatus = async function(id) {
+        const student = students.find(s => s.id === id);
+        if (!student) return;
+        const currentStatus = getStudentStatus(student);
+        let newStatus;
+        if (currentStatus === 'نشط') newStatus = 'متوقف';
+        else if (currentStatus === 'متوقف') newStatus = 'منتهي الاشتراك';
+        else newStatus = 'نشط';
+        const newActive = newStatus === 'نشط';
+        await updateStudentInDB(id, { active: newActive, status: newStatus });
+        await loadAllData();
+        showToast(`🔄 حالة ${student.name}: "${newStatus}"`, 'info');
     };
 
     window.deleteStudent = async function(id) {
         const student = students.find(s => s.id === id);
         if (!student) return;
-        if (!await showConfirm(`حذف "${student.name}" نهائياً؟`)) return;
+        let warnings = [];
+        const attCount = attendanceLogs.filter(l => l.student_id === id).length;
+        if (attCount > 0) warnings.push(`${attCount} سجل حضور`);
+        const txCount = transactions.filter(t => t.student_id === id).length;
+        if (txCount > 0) warnings.push(`${txCount} عملية مالية`);
+        const poolEntry = Object.values(poolCard).find(p => p && p.student_id === id);
+        if (poolEntry) warnings.push('كارت ماية');
+        let msg = `حذف "${student.name}" نهائياً؟`;
+        if (warnings.length > 0) msg += `\n\n⚠️ تحذير: هذا السباح مرتبط بـ:\n• ${warnings.join('\n• ')}\n\nسيتم حذف جميع البيانات المرتبطة.`;
+        if (!await showConfirm(msg)) return;
+        if (attCount > 0) await supabaseClient.from('attendance_logs').delete().eq('student_id', id);
+        if (txCount > 0) await supabaseClient.from('transactions').delete().eq('student_id', id);
+        if (poolEntry) await supabaseClient.from('pool_card').delete().eq('student_id', id);
         await deleteStudentFromDB(id);
-        await logActivity('حذف', 'سباح', student.name, 'حذف نهائي');
+        await logActivity('حذف', 'سباح', student.name, `حذف نهائي${warnings.length > 0 ? ' - ' + warnings.join(', ') : ''}`);
         await loadAllData();
         showToast(`🗑️ تم حذف ${student.name}`, 'info');
     };
@@ -2592,9 +2645,28 @@
     window.deleteCoach = async function(id) {
         const coach = coaches.find(c => c.id === id);
         if (!coach) return;
-        if (!await showConfirm(`حذف المدرب "${coach.name}" نهائياً؟`)) return;
+        let warnings = [];
+        const linkedStudents = students.filter(s => s.coach_id === id);
+        if (linkedStudents.length > 0) warnings.push(`${linkedStudents.length} سباح مرتبط`);
+        let templateCount = 0;
+        Object.keys(weeklyTemplate).forEach(key => {
+            if (key.startsWith(id + '_') && weeklyTemplate[key] && weeklyTemplate[key].students && weeklyTemplate[key].students.length > 0) templateCount++;
+        });
+        if (templateCount > 0) warnings.push(`${templateCount} خلية في الجدول الأسبوعي`);
+        const txCount = transactions.filter(t => t.coach_id === id).length;
+        if (txCount > 0) warnings.push(`${txCount} عملية مالية`);
+        const attCount = attendanceLogs.filter(l => l.coach_id === id).length;
+        if (attCount > 0) warnings.push(`${attCount} سجل حضور`);
+        let msg = `حذف المدرب "${coach.name}" نهائياً؟`;
+        if (warnings.length > 0) msg += `\n\n⚠️ تحذير: هذا المدرب مرتبط بـ:\n• ${warnings.join('\n• ')}\n\nسيتم حذف جميع البيانات المرتبطة.`;
+        if (!await showConfirm(msg)) return;
+        for (const s of linkedStudents) {
+            await updateStudentInDB(s.id, { coach_id: null });
+        }
+        if (txCount > 0) await supabaseClient.from('transactions').delete().eq('coach_id', id);
+        if (attCount > 0) await supabaseClient.from('attendance_logs').delete().eq('coach_id', id);
         await deleteCoachFromDB(id);
-        await logActivity('حذف', 'مدرب', coach.name, 'حذف نهائي');
+        await logActivity('حذف', 'مدرب', coach.name, `حذف نهائي${warnings.length > 0 ? ' - ' + warnings.join(', ') : ''}`);
         await loadAllData();
         showToast(`🗑️ تم حذف المدرب ${coach.name}`, 'info');
     };
@@ -2640,7 +2712,7 @@
         if (type === 'revenue' && category.includes('اشتراكات')) {
             const select = document.getElementById('financeStudentId');
             select.innerHTML = '<option value="">بدون</option>';
-            students.filter(s => s.active !== false).forEach(s => {
+            students.filter(s => isStudentActive(s)).forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
                 opt.textContent = `${s.name} (${coaches.find(c => c.id === s.coach_id)?.name || ''})`;
@@ -2766,16 +2838,6 @@
         await addTransactionToDB(transData);
         await logActivity('إضافة', 'عملية مالية', category, `${type === 'revenue' ? 'إيراد' : 'مصروف'}: ${formatCurrency(amount)}`);
         await loadAllData();
-        const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
-        if (modal) modal.hide();
-        document.getElementById('financeAmount').value = '';
-        document.getElementById('financeDesc').value = '';
-        document.getElementById('poolPurchaseSection').style.display = 'none';
-        showToast(`✅ تم تسجيل ${type === 'revenue' ? 'إيراد' : 'مصروف'}`, 'success');
-    };
-        addTransactionToDB(transData);
-        logActivity('إضافة', 'عملية مالية', category, `${type === 'revenue' ? 'إيراد' : 'مصروف'}: ${formatCurrency(amount)}`);
-        loadAllData();
         const modal = bootstrap.Modal.getInstance(document.getElementById('financeModal'));
         if (modal) modal.hide();
         document.getElementById('financeAmount').value = '';
@@ -3181,7 +3243,7 @@
     // 17. تحديث الإحصائيات
     // ========================================================================
     function updateStatsAndCharts() {
-        const activeStudents = students.filter(s => s.active !== false).length;
+        const activeStudents = students.filter(s => isStudentActive(s)).length;
         document.getElementById('totalStudents').innerText = activeStudents;
 
         const totalRev = transactions.filter(t => t.type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);

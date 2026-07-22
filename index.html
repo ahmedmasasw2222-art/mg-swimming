@@ -230,6 +230,22 @@
         .count-badge { display: inline-block; min-width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; font-size: 0.7rem; font-weight: 800; }
         .count-badge-present { background: #d4edda; color: #155724; }
         .count-badge-absent { background: #f8d7da; color: #721c24; }
+        .notif-bell { position: fixed; top: 100px; left: 20px; z-index: 9990; background: var(--mg-primary); color: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s; }
+        .notif-bell:hover { background: var(--mg-gold); color: var(--mg-primary); transform: scale(1.1); }
+        .notif-badge { position: absolute; top: -4px; right: -4px; background: #e74c3c; color: #fff; border-radius: 50%; min-width: 22px; height: 22px; font-size: 0.65rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+        .notif-dropdown { position: fixed; top: 155px; left: 15px; width: 380px; max-height: 500px; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); z-index: 9991; display: none; }
+        .notif-dropdown.show { display: block; }
+        .notif-header { padding: 12px 16px; background: var(--mg-primary); color: #fff; border-radius: 16px 16px 0 0; font-weight: 700; font-size: 0.85rem; }
+        .notif-item { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.15s; font-size: 0.8rem; }
+        .notif-item:hover { background: #f8f9fa; }
+        .notif-item .notif-icon { font-size: 1.1rem; margin-left: 8px; }
+        .notif-empty { padding: 30px; text-align: center; color: #aaa; }
+        .missing-data-badge { background: #e74c3c; color: #fff; padding: 2px 8px; border-radius: 30px; font-size: 0.55rem; font-weight: 700; }
+        .subscription-badge { padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; font-weight: 700; }
+        .subscription-ok { background: #d4edda; color: #155724; }
+        .subscription-warning { background: #fff3cd; color: #856404; }
+        .subscription-expired { background: #f8d7da; color: #721c24; }
+        @media (max-width: 768px) { .notif-dropdown { width: calc(100vw - 30px); left: 10px; } .notif-bell { left: 10px; } }
     </style>
 </head>
 <body>
@@ -590,6 +606,14 @@
                 </div>
                 <div class="mb-2 mt-2"><label class="form-label fw-bold">الكابتن</label><select class="form-select" id="newStudentCoach"></select></div>
                 <div class="mb-2"><label class="form-label fw-bold">المبلغ الشهري</label><input type="number" class="form-control" id="newStudentFee" value="0"></div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label fw-bold">بداية الاشتراك</label><input type="date" class="form-control" id="newStudentSubStart"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">نهاية الاشتراك</label><input type="date" class="form-control" id="newStudentSubEnd"></div>
+                </div>
+                <div class="row g-2 mt-1">
+                    <div class="col-md-6"><label class="form-label fw-bold">عدد الحصص</label><input type="number" class="form-control" id="newStudentSessions" value="0" min="0"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">تليفون ولي الأمر</label><input type="text" class="form-control" id="newStudentGuardian"></div>
+                </div>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="addNewStudent()">حفظ</button></div>
         </div>
@@ -606,6 +630,11 @@
                 <div class="mb-2"><label class="form-label fw-bold">السباح</label><input type="text" class="form-control" id="paymentStudentName" disabled></div>
                 <div class="mb-2"><label class="form-label fw-bold">المبلغ</label><input type="number" class="form-control" id="paymentAmount"></div>
                 <div class="mb-2"><label class="form-label fw-bold">طريقة الدفع</label><select class="form-select" id="paymentMethod"><option value="كاش">كاش</option><option value="إنستا باي">إنستا باي</option></select></div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label fw-bold">تجديد الاشتراك من</label><input type="date" class="form-control" id="paymentSubStart"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">حتى</label><input type="date" class="form-control" id="paymentSubEnd"></div>
+                </div>
+                <div class="mb-2 mt-2"><label class="form-label fw-bold">عدد الحصص</label><input type="number" class="form-control" id="paymentSessions" value="0" min="0"></div>
                 <div class="mb-2"><label class="form-label fw-bold">سجل الدفعات</label><div id="paymentHistoryList" class="border rounded p-2 bg-light"></div></div>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" style="background:#27ae60;" onclick="recordPayment()">تسجيل</button></div>
@@ -811,6 +840,19 @@
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
+<!-- زر التنبيهات المركزي -->
+<button class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()" title="التنبيهات">
+    <i class="bi bi-bell"></i>
+    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+</button>
+<div class="notif-dropdown" id="notifDropdown">
+    <div class="notif-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bell"></i> التنبيهات</span>
+        <button class="btn btn-sm btn-outline-light" onclick="clearAllNotifications()">مسح الكل</button>
+    </div>
+    <div id="notifList"></div>
+</div>
+
 <script>
     // ========================================================================
     // SQL مطلوب - شغّل هذه الأوامر في Supabase SQL Editor:
@@ -858,6 +900,14 @@
     //
     // عمود حالة السباح (اختياري - لدعم 3 حالات: نشط/متوقف/منتهي):
     // ALTER TABLE students ADD COLUMN IF NOT EXISTS status text DEFAULT 'نشط';
+    //
+    // أعمدة المرحلة الثالثة:
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS subscription_start TEXT DEFAULT '';
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS subscription_end TEXT DEFAULT '';
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS total_sessions INTEGER DEFAULT 0;
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS used_sessions INTEGER DEFAULT 0;
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_phone TEXT DEFAULT '';
+    // ALTER TABLE students ADD COLUMN IF NOT EXISTS last_payment_date TEXT DEFAULT '';
     // ========================================================================
 
     // ========================================================================
@@ -3349,6 +3399,347 @@
             });
         }
     });
+
+    // ========================================================================
+    // 20. المرحلة الثالثة - التنبيهات والمتابعة
+    // ========================================================================
+
+    let dismissedNotifications = JSON.parse(localStorage.getItem('mg_dismissed_notifs') || '[]');
+
+    function getNotifications() {
+        const notifs = [];
+        const today = getToday();
+        const todayDate = new Date(today + 'T00:00:00');
+
+        students.forEach(s => {
+            if (s.subscription_end && s.subscription_end.trim()) {
+                const endDate = new Date(s.subscription_end + 'T00:00:00');
+                const diffDays = Math.ceil((endDate - todayDate) / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) {
+                    notifs.push({ id: `sub_expired_${s.id}`, type: 'danger', icon: 'bi-exclamation-octagon', title: `اشتراك ${s.name} منتهي`, desc: `انتهى منذ ${Math.abs(diffDays)} يوم`, action: 'students', dismissible: true });
+                } else if (diffDays <= 7) {
+                    notifs.push({ id: `sub_expiring_${s.id}`, type: 'warning', icon: 'bi-exclamation-triangle', title: `اشتراك ${s.name} ينتهي قريباً`, desc: `متبقي ${diffDays} يوم فقط`, action: 'students', dismissible: true });
+                }
+            }
+
+            if (s.total_sessions > 0 && s.used_sessions !== undefined) {
+                const remaining = s.total_sessions - (s.used_sessions || 0);
+                if (remaining <= 0) {
+                    notifs.push({ id: `sessions_done_${s.id}`, type: 'danger', icon: 'bi-calendar-x', title: `حصص ${s.name} انتهت`, desc: `تم استخدام ${s.total_sessions} من ${s.total_sessions} حصة`, action: 'students', dismissible: true });
+                } else if (remaining <= 3 && s.total_sessions > 3) {
+                    notifs.push({ id: `sessions_low_${s.id}`, type: 'warning', icon: 'bi-calendar-minus', title: `حصص ${s.name} تكاد تنتهي`, desc: `متبقي ${remaining} من ${s.total_sessions} حصة`, action: 'students', dismissible: true });
+                }
+            }
+
+            if (s.payment_status === 'غير مدفوع' || s.payment_status === 'متأخر') {
+                let delayText = '';
+                if (s.last_payment_date && s.last_payment_date.trim()) {
+                    const lastPay = new Date(s.last_payment_date + 'T00:00:00');
+                    const daysSince = Math.floor((todayDate - lastPay) / (1000 * 60 * 60 * 24));
+                    if (daysSince > 0) delayText = ` (متأخر منذ ${daysSince} يوم)`;
+                }
+                notifs.push({ id: `unpaid_${s.id}`, type: 'info', icon: 'bi-cash-coin', title: `دفعة غير مدفوعة: ${s.name}`, desc: `الحالة: ${s.payment_status}${delayText}`, action: 'students', dismissible: true });
+            }
+
+            if (!s.phone || s.phone === 'غير محدد' || !s.phone.trim()) {
+                notifs.push({ id: `missing_phone_${s.id}`, type: 'secondary', icon: 'bi-telephone-x', title: `نقص بيانات: ${s.name}`, desc: 'لا يوجد رقم تليفون', action: 'students', dismissible: true });
+            }
+            if (s.guardian_phone !== undefined && (!s.guardian_phone || !s.guardian_phone.trim())) {
+                notifs.push({ id: `missing_guardian_${s.id}`, type: 'secondary', icon: 'bi-person-x', title: `نقص بيانات: ${s.name}`, desc: 'لا يوجد تليفون ولي أمر', action: 'students', dismissible: true });
+            }
+        });
+
+        return notifs;
+    }
+
+    function getDismissedNotifications() {
+        return JSON.parse(localStorage.getItem('mg_dismissed_notifs') || '[]');
+    }
+
+    function dismissNotification(notifId) {
+        const dismissed = getDismissedNotifications();
+        if (!dismissed.includes(notifId)) {
+            dismissed.push(notifId);
+            localStorage.setItem('mg_dismissed_notifs', JSON.stringify(dismissed));
+        }
+        renderNotifications();
+    }
+
+    function clearAllNotifications() {
+        const allNotifs = getNotifications();
+        const allIds = allNotifs.map(n => n.id);
+        localStorage.setItem('mg_dismissed_notifs', JSON.stringify(allIds));
+        renderNotifications();
+    }
+
+    function renderNotifications() {
+        const allNotifs = getNotifications();
+        const dismissed = getDismissedNotifications();
+        const activeNotifs = allNotifs.filter(n => !dismissed.includes(n.id));
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        if (!badge || !list) return;
+
+        if (activeNotifs.length > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = activeNotifs.length;
+        } else {
+            badge.style.display = 'none';
+        }
+
+        if (activeNotifs.length === 0) {
+            list.innerHTML = '<div class="notif-empty"><i class="bi bi-check-circle" style="font-size:2rem;"></i><br>لا توجد تنبيهات</div>';
+            return;
+        }
+
+        const typeColors = { danger: '#e74c3c', warning: '#f39c12', info: '#2980b9', secondary: '#6c757d' };
+        list.innerHTML = '';
+        activeNotifs.forEach(n => {
+            const div = document.createElement('div');
+            div.className = 'notif-item';
+            div.onclick = function() {
+                if (n.action) switchView(n.action);
+                document.getElementById('notifDropdown').classList.remove('show');
+            };
+            div.innerHTML = `
+                <div class="d-flex align-items-start gap-2">
+                    <span class="notif-icon" style="color:${typeColors[n.type] || '#666'};"><i class="bi ${n.icon}"></i></span>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold" style="font-size:0.8rem;">${n.title}</div>
+                        <div style="font-size:0.7rem;color:#666;">${n.desc}</div>
+                    </div>
+                    ${n.dismissible ? `<button class="btn btn-sm p-0" onclick="event.stopPropagation(); dismissNotification('${n.id}')" style="font-size:0.7rem;color:#aaa;">✕</button>` : ''}
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    window.toggleNotifDropdown = function() {
+        const dd = document.getElementById('notifDropdown');
+        dd.classList.toggle('show');
+        if (dd.classList.contains('show')) renderNotifications();
+    };
+
+    document.addEventListener('click', function(e) {
+        const dd = document.getElementById('notifDropdown');
+        const bell = document.getElementById('notifBell');
+        if (dd && bell && !dd.contains(e.target) && !bell.contains(e.target)) {
+            dd.classList.remove('show');
+        }
+    });
+
+    // 20.1 التحقق من صحة البيانات
+    function validateAmount(amount, fieldName) {
+        if (amount === undefined || amount === null || amount === '' || isNaN(amount)) {
+            showToast(`❌ أدخل مبلغ صحيح في حقل "${fieldName}"`, 'danger');
+            return false;
+        }
+        if (Number(amount) < 0) {
+            showToast(`❌ المبلغ لا يمكن أن يكون سالباً في "${fieldName}"`, 'danger');
+            return false;
+        }
+        return true;
+    }
+
+    function validateRequired(value, fieldName) {
+        if (!value || (typeof value === 'string' && !value.trim())) {
+            showToast(`❌ الحقل "${fieldName}" مطلوب`, 'danger');
+            return false;
+        }
+        return true;
+    }
+
+    function validateDateNotFuture(dateStr, fieldName) {
+        if (!dateStr) return true;
+        const date = new Date(dateStr + 'T23:59:59');
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        if (date > today) {
+            showToast(`⚠️ التاريخ في "${fieldName}" لا يمكن أن يكون في المستقبل`, 'warning');
+            return false;
+        }
+        return true;
+    }
+
+    // 20.2 كشف التكرار
+    function isDuplicatePayment(studentId, amount, date) {
+        return transactions.filter(t =>
+            t.student_id === studentId &&
+            t.amount == amount &&
+            t.transaction_date === date
+        ).length > 0;
+    }
+
+    // 20.3 كشف المبالغ غير المعتادة
+    function getAverageAmount(category) {
+        const catTransactions = transactions.filter(t => t.category === category && Number(t.amount) > 0);
+        if (catTransactions.length < 3) return null;
+        const sum = catTransactions.reduce((s, t) => s + Number(t.amount), 0);
+        return sum / catTransactions.length;
+    }
+
+    function isAnomalyAmount(category, amount) {
+        const avg = getAverageAmount(category);
+        if (!avg || avg === 0) return false;
+        return Number(amount) > avg * 3;
+    }
+
+    // 20.4 تعديل addNewStudent مع التحقق
+    const _origAddNewStudent = window.addNewStudent;
+    window.addNewStudent = async function() {
+        const name = document.getElementById('newStudentName').value.trim();
+        const phone = document.getElementById('newStudentPhone').value.trim();
+        const level = document.getElementById('newStudentLevel').value;
+        const type = document.getElementById('newStudentType').value;
+        const coachId = parseInt(document.getElementById('newStudentCoach').value);
+        const monthlyFee = parseFloat(document.getElementById('newStudentFee').value) || 0;
+        const subStart = document.getElementById('newStudentSubStart').value;
+        const subEnd = document.getElementById('newStudentSubEnd').value;
+        const sessions = parseInt(document.getElementById('newStudentSessions').value) || 0;
+        const guardianPhone = document.getElementById('newStudentGuardian') ? document.getElementById('newStudentGuardian').value.trim() : '';
+
+        if (!validateRequired(name, 'اسم السباح')) return;
+        if (!validateAmount(monthlyFee, 'المبلغ الشهري') && monthlyFee > 0) return;
+        if (subStart && subEnd && subEnd < subStart) {
+            showToast('❌ تاريخ النهاية لا يمكن أن يسبق تاريخ البداية', 'danger');
+            return;
+        }
+
+        if (students.find(s => s.name === name && isStudentActive(s))) {
+            showToast('⚠️ هذا الاسم موجود بالفعل لسباح نشط', 'warning');
+            return;
+        }
+
+        const coachName = coaches.find(c => c.id === coachId)?.name || '';
+        const newStudent = {
+            name: name,
+            phone: phone || 'غير محدد',
+            coach_id: coachId,
+            type: type,
+            level: level,
+            active: true,
+            monthly_fee: monthlyFee,
+            payment_status: 'غير مدفوع',
+            payment_method: 'كاش',
+            subscription_start: subStart || '',
+            subscription_end: subEnd || '',
+            total_sessions: sessions,
+            used_sessions: 0,
+            guardian_phone: guardianPhone,
+            last_payment_date: ''
+        };
+        await addStudentToDB(newStudent);
+        await logActivity('إضافة', 'سباح', name, `هاتف: ${phone}, مدرب: ${coachName}, نوع: ${type}`);
+        await loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم إضافة السباح ${name}`, 'success');
+    };
+
+    // 20.5 تعديل recordPayment مع التحقق
+    const _origRecordPayment = window.recordPayment;
+    window.recordPayment = async function() {
+        const studentId = parseInt(document.getElementById('paymentStudentId').value);
+        const student = students.find(s => s.id === studentId);
+        if (!student) { showToast('❌ لم يتم العثور على السباح', 'danger'); return; }
+        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        const method = document.getElementById('paymentMethod').value;
+        const subStart = document.getElementById('paymentSubStart') ? document.getElementById('paymentSubStart').value : '';
+        const subEnd = document.getElementById('paymentSubEnd') ? document.getElementById('paymentSubEnd').value : '';
+        const sessions = document.getElementById('paymentSessions') ? parseInt(document.getElementById('paymentSessions').value) || 0 : 0;
+
+        if (!validateAmount(amount, 'المبلغ')) return;
+        if (amount <= 0) { showToast('❌ المبلغ يجب أن أكبر من صفر', 'danger'); return; }
+
+        if (isDuplicatePayment(studentId, amount, getToday())) {
+            if (!await showConfirm('⚠️ توجد دفعة بنفس المبلغ والتاريخ بالفعل. هل أنت متأكد من التكرار؟')) return;
+        }
+
+        if (isAnomalyAmount('اشتراكات سباحين', amount)) {
+            if (!await showConfirm(`⚠️ المبلغ ${formatCurrency(amount)} أكبر من المعتاد بـ 3 أضعاف. هل أنت متأكد؟`)) return;
+        }
+
+        const updates = { payment_status: 'مدفوع', payment_method: method, last_payment_date: getToday() };
+        if (subStart) updates.subscription_start = subStart;
+        if (subEnd) updates.subscription_end = subEnd;
+        if (sessions > 0) { updates.total_sessions = sessions; updates.used_sessions = 0; }
+        await updateStudentInDB(studentId, updates);
+
+        const transData = {
+            type: 'revenue',
+            category: 'اشتراكات سباحين',
+            amount: amount,
+            description: `اشتراك ${student.name}`,
+            transaction_date: getToday(),
+            student_id: studentId
+        };
+        await addTransactionToDB(transData);
+        await logActivity('تسجيل', 'دفعة', student.name, `مبلغ: ${formatCurrency(amount)}, طريقة: ${method}`);
+        await loadAllData();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+        if (modal) modal.hide();
+        showToast(`✅ تم تسجيل دفع ${formatCurrency(amount)} للسباح ${student.name}`, 'success');
+    };
+
+    // 20.5.5 تعديل saveFinance مع التحقق الشامل
+    const _origSaveFinanceForPhase3 = originalSaveFinance;
+    window.saveFinance = async function() {
+        const type = document.getElementById('financeType').value;
+        const category = document.getElementById('financeCategory').value;
+        const amount = parseFloat(document.getElementById('financeAmount').value);
+        const desc = document.getElementById('financeDesc').value.trim();
+
+        if (!validateRequired(category, 'الفئة')) return;
+        if (!validateAmount(amount, 'المبلغ')) return;
+        if (amount <= 0) { showToast('❌ المبلغ يجب أن أكبر من صفر', 'danger'); return; }
+
+        if (isAnomalyAmount(category, amount)) {
+            if (!await showConfirm(`⚠️ المبلغ ${formatCurrency(amount)} أكبر من المعتاد بـ 3 أضعاف في فئة "${category}". هل أنت متأكد؟`)) return;
+        }
+
+        await _origSaveFinanceForPhase3();
+    };
+
+    // 20.6 تعديل renderStudents لإضافة تنبيهات
+    function renderStudentsWithAlerts() {
+        renderStudentsCore();
+        const tbody = document.getElementById('studentsTableBody');
+        if (!tbody) return;
+        const rows = tbody.querySelectorAll('tr');
+        const today = getToday();
+        rows.forEach(row => {
+            const nameCell = row.querySelector('.fw-bold');
+            if (!nameCell) return;
+            const studentName = nameCell.textContent.trim().split('\n')[0].trim();
+            const student = students.find(s => s.name === studentName);
+            if (!student) return;
+            let badges = [];
+            if (!student.phone || student.phone === 'غير محدد') badges.push('<span class="missing-data-badge ms-1">بيانات ناقصة</span>');
+            if (student.subscription_end) {
+                const endDate = new Date(student.subscription_end + 'T00:00:00');
+                const diff = Math.ceil((endDate - new Date(today + 'T00:00:00')) / (1000*60*60*24));
+                if (diff < 0) badges.push('<span class="subscription-badge subscription-expired ms-1">منتهي</span>');
+                else if (diff <= 7) badges.push(`<span class="subscription-badge subscription-warning ms-1">ينتهي ${diff} يوم</span>`);
+            }
+            if (student.total_sessions > 0) {
+                const rem = student.total_sessions - (student.used_sessions || 0);
+                if (rem <= 0) badges.push('<span class="missing-data-badge ms-1">الحصص انتهت</span>');
+                else if (rem <= 3) badges.push(`<span class="subscription-badge subscription-warning ms-1">متبقي ${rem} حصة</span>`);
+            }
+            if (badges.length > 0) nameCell.innerHTML += badges.join('');
+        });
+    }
+
+    const renderStudentsCore = renderStudents;
+    window.renderStudents = renderStudentsWithAlerts;
+
+    // 20.7 تحديث التنبيهات بعد loadAllData
+    const _origLoadAllData = loadAllData;
+    loadAllData = async function() {
+        await _origLoadAllData();
+        renderNotifications();
+    };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

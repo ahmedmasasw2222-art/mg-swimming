@@ -255,6 +255,51 @@
         .subscription-expired { background: #f8d7da; color: #721c24; }
         @media (max-width: 768px) { .notif-dropdown { width: calc(100vw - 30px); left: 10px; } .notif-bell { left: 10px; } }
 
+        /* ===== Phase 5 - Modern Buttons ===== */
+        .btn-phase5 { padding: 8px 20px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); display: inline-flex; align-items: center; gap: 6px; }
+        .btn-phase5:hover { transform: translateY(-1px); }
+        .btn-phase5:active { transform: translateY(0) scale(0.97); }
+        .btn-phase5-primary { background: linear-gradient(135deg, var(--mg-primary), #1a4a6b); color: #fff; box-shadow: 0 2px 8px rgba(10,46,74,0.3); }
+        .btn-phase5-primary:hover { box-shadow: 0 4px 15px rgba(10,46,74,0.4); }
+        .btn-phase5-success { background: linear-gradient(135deg, #27ae60, #2ecc71); color: #fff; box-shadow: 0 2px 8px rgba(39,174,96,0.3); }
+        .btn-phase5-success:hover { box-shadow: 0 4px 15px rgba(39,174,96,0.4); }
+        .btn-phase5-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; box-shadow: 0 2px 8px rgba(231,76,60,0.3); }
+        .btn-phase5-danger:hover { box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
+        .btn-phase5-warning { background: linear-gradient(135deg, #f39c12, #e67e22); color: #fff; box-shadow: 0 2px 8px rgba(243,156,18,0.3); }
+        .btn-phase5-warning:hover { box-shadow: 0 4px 15px rgba(243,156,18,0.4); }
+        .btn-phase5-outline { background: transparent; border: 2px solid var(--mg-primary); color: var(--mg-primary); }
+        .btn-phase5-outline:hover { background: var(--mg-primary); color: #fff; }
+        .btn-phase5-gold { background: linear-gradient(135deg, var(--mg-gold), #f39c12); color: var(--mg-primary); box-shadow: 0 2px 8px rgba(246,185,59,0.3); }
+        .btn-phase5-gold:hover { box-shadow: 0 4px 15px rgba(246,185,59,0.4); }
+        .btn-phase5-sm { padding: 5px 12px; font-size: 0.72rem; border-radius: 8px; }
+
+        /* ===== Phase 5 - Source Indicator ===== */
+        .source-badge { display: inline-block; font-size: 0.45rem; padding: 1px 5px; border-radius: 8px; font-weight: 700; margin-top: 2px; line-height: 1.3; }
+        .source-weekly { background: rgba(41,128,185,0.15); color: #2980b9; border: 1px solid rgba(41,128,185,0.2); }
+        .source-exception { background: rgba(243,156,18,0.15); color: #e67e22; border: 1px solid rgba(243,156,18,0.2); }
+        .reset-weekly-btn { background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid rgba(231,76,60,0.2); font-size: 0.45rem; padding: 1px 4px; border-radius: 6px; cursor: pointer; font-weight: 700; display: inline-block; }
+
+        /* ===== Phase 5 - Global Search ===== */
+        .global-search-box { position: relative; }
+        .global-search-box input { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 10px; padding: 5px 12px 5px 30px; font-size: 0.75rem; width: 200px; transition: 0.3s; }
+        .global-search-box input::placeholder { color: rgba(255,255,255,0.6); }
+        .global-search-box input:focus { background: rgba(255,255,255,0.25); border-color: var(--mg-gold); outline: none; width: 250px; color: #fff; }
+        .global-search-box i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.6); font-size: 0.75rem; }
+        .search-results-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); z-index: 10000; max-height: 350px; overflow-y: auto; display: none; margin-top: 4px; }
+        .search-results-dropdown.show { display: block; }
+        .search-result-item { padding: 8px 14px; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-size: 0.8rem; color: #333; transition: 0.15s; }
+        .search-result-item:hover { background: #f8f9fa; }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-type { font-size: 0.6rem; padding: 2px 8px; border-radius: 8px; font-weight: 700; margin-left: 6px; }
+        .search-result-student { background: rgba(39,174,96,0.1); color: #27ae60; }
+        .search-result-coach { background: rgba(52,152,219,0.1); color: #3498db; }
+        .search-result-transaction { background: rgba(231,76,60,0.1); color: #e74c3c; }
+        @media (max-width: 768px) { .global-search-box input { width: 140px; } .global-search-box input:focus { width: 180px; } }
+
+        /* ===== Phase 5 - Coach Restricted View ===== */
+        .coach-restricted-overlay { background: rgba(248,249,250,0.9); border: 2px dashed #dee2e6; border-radius: 16px; padding: 30px; text-align: center; color: #6c757d; }
+        .permission-denied-msg { background: #fff3cd; color: #856404; padding: 12px 20px; border-radius: 12px; border: 1px solid #ffc107; font-size: 0.85rem; font-weight: 600; }
+
         /* أزرار الإجراءات العصرية */
         .action-btn-group { display: inline-flex; gap: 4px; align-items: center; }
         .action-btn { width: 32px; height: 32px; border: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
@@ -377,6 +422,11 @@
             </div>
             <div class="col-md-9 mt-2 mt-md-0">
                 <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                    <div class="global-search-box" style="position:relative;">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="globalSearchInput" placeholder="بحث سريع..." oninput="handleGlobalSearch()" onfocus="handleGlobalSearch()" onblur="setTimeout(()=>document.getElementById('globalSearchResults').classList.remove('show'),200)">
+                        <div class="search-results-dropdown" id="globalSearchResults"></div>
+                    </div>
                     <span class="badge-gold" style="font-size:0.7rem;"><i class="bi bi-shield-check"></i> <span id="userRoleDisplay">مدير عام</span></span>
                     <span class="badge" id="userRoleBadge" style="font-size:0.6rem;"></span>
                     <button class="tab-btn active" onclick="switchView('daily')" id="tabDaily"><i class="bi bi-calendar-day"></i> يومي</button>
@@ -507,6 +557,7 @@
                     </div>
                     <button class="btn btn-sm btn-outline-secondary" onclick="openExceptionModal()"><i class="bi bi-pencil-square"></i> تعديل اليوم</button>
                     <button class="btn btn-sm btn-outline-secondary" onclick="openAttendanceModal()"><i class="bi bi-check2-square"></i> تسجيل حضور</button>
+                    <span id="dailySyncIndicator" class="badge bg-info p-2" style="font-size:0.65rem;"><i class="bi bi-arrow-repeat"></i> البيانات من الجدول الأسبوعي</span>
                     <span class="badge bg-secondary p-2"><i class="bi bi-info-circle"></i> اضغط على خلية</span>
                 </div>
             </div>
@@ -607,7 +658,7 @@
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <label class="fw-bold" style="font-size:0.75rem;">المدرب:</label>
                     <select class="form-select form-select-sm weekly-coach-selector" id="weeklyCoachSelect" onchange="renderWeekly()"></select>
-                    <button class="btn btn-sm btn-outline-danger" onclick="clearWeeklyTemplate()"><i class="bi bi-trash"></i> مسح الكل</button>
+                    <button class="btn-phase5 btn-phase5-danger btn-phase5-sm" onclick="clearWeeklyTemplate()"><i class="bi bi-trash"></i> مسح الكل</button>
                 </div>
             </div>
             <div style="overflow-x:auto;">
@@ -675,6 +726,11 @@
                         <option value="revenue">إيرادات</option>
                         <option value="expense">مصروفات</option>
                     </select>
+                    <select class="form-select form-select-sm" id="transactionCategoryFilter" onchange="renderTransactions()" style="max-width:120px;">
+                        <option value="all">كل التصنيفات</option>
+                    </select>
+                    <input type="date" class="form-control form-control-sm" id="transactionDateFrom" onchange="renderTransactions()" style="max-width:140px;" title="من تاريخ">
+                    <input type="date" class="form-control form-control-sm" id="transactionDateTo" onchange="renderTransactions()" style="max-width:140px;" title="إلى تاريخ">
                     <button class="btn btn-sm btn-mg-outline" onclick="renderTransactions()"><i class="bi bi-arrow-repeat"></i></button>
                     <button class="btn btn-sm btn-mg-gold" onclick="exportMonthlyReport()"><i class="bi bi-file-earmark-spreadsheet"></i> تقرير شهري</button>
                     <button class="btn btn-sm btn-mg-outline" onclick="exportTransactions()"><i class="bi bi-download"></i> تصدير</button>
@@ -810,7 +866,7 @@
             </div>
             <div class="modal-body" id="studentPaymentHistoryBody" style="max-height:400px;overflow-y:auto;"></div>
             <div class="modal-footer border-top-0">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
     </div>
@@ -826,7 +882,7 @@
             </div>
             <div class="modal-body" id="coachRecordBody"></div>
             <div class="modal-footer border-top-0">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
     </div>
@@ -839,7 +895,7 @@
             <div class="modal-header no-print" style="background:var(--mg-primary);color:#fff;border-radius:16px 16px 0 0;">
                 <h6 class="modal-title fw-bold"><i class="bi bi-printer"></i> تقرير مالي</h6>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-warning" onclick="printReport()"><i class="bi bi-printer"></i> طباعة</button>
+                    <button class="btn-phase5 btn-phase5-warning btn-phase5-sm" onclick="printReport()"><i class="bi bi-printer"></i> طباعة</button>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
             </div>
@@ -883,7 +939,7 @@
                     <div class="col-md-6"><label class="form-label fw-bold">تليفون ولي الأمر</label><input type="text" class="form-control" id="newStudentGuardian"></div>
                 </div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="addNewStudent()">حفظ</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-gold" onclick="addNewStudent()">حفظ</button></div>
         </div>
     </div>
 </div>
@@ -905,7 +961,7 @@
                 <div class="mb-2 mt-2"><label class="form-label fw-bold">عدد الحصص</label><input type="number" class="form-control" id="paymentSessions" value="0" min="0"></div>
                 <div class="mb-2"><label class="form-label fw-bold">سجل الدفعات</label><div id="paymentHistoryList" class="border rounded p-2 bg-light"></div></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" style="background:#27ae60;" onclick="recordPayment()">تسجيل</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-success" style="background:#27ae60;" onclick="recordPayment()">تسجيل</button></div>
         </div>
     </div>
 </div>
@@ -920,7 +976,7 @@
                 <div class="mb-2"><label class="form-label fw-bold">السباح</label><input type="text" class="form-control" id="editFeeStudentName" disabled></div>
                 <div class="mb-2"><label class="form-label fw-bold">المبلغ الجديد</label><input type="number" class="form-control" id="editFeeAmount"></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveFeeEdit()">حفظ</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-primary" onclick="saveFeeEdit()">حفظ</button></div>
         </div>
     </div>
 </div>
@@ -1029,7 +1085,7 @@
                 </div>
             </div>
             <div class="modal-footer border-top-0 px-4 pb-3" style="background:#f8f9fa;">
-                <button class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius:10px;">إلغاء</button>
+                <button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal" style="border-radius:10px;">إلغاء</button>
                 <button class="btn btn-mg-gold" onclick="saveStudentEdit()" style="border-radius:10px;padding:8px 28px;font-weight:700;">
                     <i class="bi bi-check-lg"></i> حفظ التعديلات
                 </button>
@@ -1049,7 +1105,7 @@
                 <input type="hidden" id="cellTargetKey"><input type="hidden" id="cellTargetView" value="daily">
                 <input type="hidden" id="cellWeeklyCoachIdx" value="0"><input type="hidden" id="cellWeeklyDayIdx" value="0"><input type="hidden" id="cellWeeklyHourIdx" value="0">
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveCellControl()">حفظ</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-primary" onclick="saveCellControl()">حفظ</button></div>
         </div>
     </div>
 </div>
@@ -1060,7 +1116,7 @@
         <div class="modal-content">
             <div class="modal-header"><h6 class="modal-title">📝 تعديلات اليوم</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body"><div id="exceptionList"></div></div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إغلاق</button></div>
         </div>
     </div>
 </div>
@@ -1079,8 +1135,8 @@
                 <div id="attendanceList" style="max-height:350px;overflow-y:auto;"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                <button class="btn btn-mg-gold" onclick="saveAllAttendanceNotes()"><i class="bi bi-save"></i> حفظ الملاحظات</button>
+                <button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إغلاق</button>
+                <button class="btn-phase5 btn-phase5-gold" onclick="saveAllAttendanceNotes()"><i class="bi bi-save"></i> حفظ الملاحظات</button>
             </div>
         </div>
     </div>
@@ -1124,7 +1180,7 @@
                 <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">المبلغ</label><input type="number" class="form-control" id="financeAmount"></div>
                 <div class="mb-2"><label class="fw-bold" style="font-size:0.8rem;">البيان</label><input type="text" class="form-control" id="financeDesc"></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-primary" onclick="saveFinance()">حفظ</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-primary" onclick="saveFinance()">حفظ</button></div>
         </div>
     </div>
 </div>
@@ -1145,7 +1201,7 @@
                 </select></div>
                 <div class="mb-2" id="coachSelectWrapper"><label class="form-label fw-bold">الكابتن المرتبط</label><select class="form-select" id="newUserCoach"></select></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="addNewUser()">حفظ</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-gold" onclick="addNewUser()">حفظ</button></div>
         </div>
     </div>
 </div>
@@ -1164,7 +1220,7 @@
                 <div class="mb-2"><label class="form-label fw-bold">التقييم (1-5)</label><input type="number" class="form-control" id="coachRating" min="1" max="5" step="0.5" value="3"></div>
                 <div class="mb-2"><label class="form-label fw-bold">ملاحظات</label><textarea class="form-control" id="coachNotes" rows="3" placeholder="ملاحظات خاصة بالمدرب..."></textarea></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-mg-gold" onclick="saveCoachFromModal()">حفظ</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-gold" onclick="saveCoachFromModal()">حفظ</button></div>
         </div>
     </div>
 </div>
@@ -1182,7 +1238,7 @@
                 <div class="p-2 bg-light rounded-3 mb-2" id="closeMonthSummary"></div>
                 <div class="alert alert-warning" style="font-size:0.8rem;"><i class="bi bi-exclamation-triangle"></i> سيتم أرشفة جميع المعاملات الشهر المحدد وسيتم إعادة العدادات للصفر.</div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-danger" onclick="executeCloseMonth()"><i class="bi bi-lock-fill"></i> إقفال الشهر</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إلغاء</button><button class="btn-phase5 btn-phase5-danger" onclick="executeCloseMonth()"><i class="bi bi-lock-fill"></i> إقفال الشهر</button></div>
         </div>
     </div>
 </div>
@@ -1195,7 +1251,7 @@
             <div class="modal-body" id="archiveModalBody">
                 <div class="text-center text-muted">جاري التحميل...</div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button></div>
+            <div class="modal-footer"><button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal">إغلاق</button></div>
         </div>
     </div>
 </div>
@@ -1212,8 +1268,8 @@
                 <p class="fw-bold mb-0" id="confirmModalMsg">هل أنت متأكد؟</p>
             </div>
             <div class="modal-footer justify-content-center" style="border-top:none;">
-                <button class="btn btn-secondary px-3" data-bs-dismiss="modal" id="confirmModalCancel">إلغاء</button>
-                <button class="btn btn-danger px-3" id="confirmModalOk">نعم، احذف</button>
+                <button class="btn-phase5 btn-phase5-outline btn-phase5-sm" data-bs-dismiss="modal" id="confirmModalCancel">إلغاء</button>
+                <button class="btn-phase5 btn-phase5-danger btn-phase5-sm" id="confirmModalOk">نعم، احذف</button>
             </div>
         </div>
     </div>
@@ -1340,6 +1396,19 @@
     let dailyExceptions = {};
     let users = [];
     let activityLog = [];
+
+    // ========================================================================
+    // 2.1 دوال الصلاحيات (Phase 5)
+    // ========================================================================
+    const ADMIN_NAMES = ['admin', 'كابتن مصطفى جمعة'];
+    function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+    function isCoach() { return currentUser && currentUser.role === 'coach'; }
+    function isViewer() { return currentUser && currentUser.role === 'viewer'; }
+    function canEdit() { return isAdmin(); }
+    function canDelete() { return isAdmin(); }
+    function canViewFinance() { return isAdmin(); }
+    function canViewOtherCoaches() { return isAdmin(); }
+    function getCoachId() { return currentUser && currentUser.coach_id ? parseInt(currentUser.coach_id) : null; }
 
     // ========================================================================
     // 3. دوال مساعدة
@@ -1676,8 +1745,20 @@
 
             if (user.role === 'admin') {
                 document.getElementById('tabUsers').style.display = 'inline-block';
+                document.getElementById('tabAccounts').style.display = '';
+                document.getElementById('tabCoaches').style.display = '';
+                document.getElementById('tabCoachAccounting').style.display = '';
+            } else if (user.role === 'coach') {
+                document.getElementById('tabUsers').style.display = 'none';
+                document.getElementById('tabAccounts').style.display = 'none';
+                document.getElementById('tabCoaches').style.display = 'none';
+                document.getElementById('tabCoachAccounting').style.display = 'none';
+                document.getElementById('tabStudents').style.display = 'none';
             } else {
                 document.getElementById('tabUsers').style.display = 'none';
+                document.getElementById('tabAccounts').style.display = '';
+                document.getElementById('tabCoaches').style.display = '';
+                document.getElementById('tabCoachAccounting').style.display = '';
             }
 
             await loadAllData();
@@ -1753,14 +1834,17 @@
         thead.appendChild(headerRow);
 
         const coachNames = coaches.map(c => c.name);
+        let exceptionCount = 0;
+        let weeklyCount = 0;
+        const visibleCoaches = isCoach() ? coaches.filter(c => c.id === getCoachId()) : coaches;
 
-        coachNames.forEach((coach, cIdx) => {
+        visibleCoaches.forEach((coach, cIdx) => {
             const tr = document.createElement('tr');
             const tdName = document.createElement('td');
-            tdName.innerHTML = `${coach}`;
+            tdName.innerHTML = `${coach.name}`;
             tr.appendChild(tdName);
 
-            const coachId = coaches[cIdx]?.id || cIdx;
+            const coachId = coach.id;
             const hours = getCoachHoursFromTemplate(coachId);
             const slots = getCoachSlotsFromTemplate(coachId);
 
@@ -1774,12 +1858,16 @@
                     td.style.cursor = 'default';
                 } else {
                     const key = `${coachId}_${hIdx}`;
-                    const date = document.getElementById('dailyDatePicker').value || getToday();
-                    const exceptionKey = `${coachId}_${date}_${hIdx}`;
+                    const currentDate = document.getElementById('dailyDatePicker').value || getToday();
+                    const exceptionKey = `${coachId}_${currentDate}_${hIdx}`;
                     let data = dailyExceptions[exceptionKey] || null;
+                    let isFromException = !!data;
                     if (!data) {
                         const slotKey = `${coachId}_${todayDayIdx}_${hIdx}`;
                         data = weeklyTemplate[slotKey] || { students: [], isUnavailable: false, type: null };
+                        weeklyCount++;
+                    } else {
+                        exceptionCount++;
                     }
                     let bgColor = '#ffffff', textColor = '#1a1a1a';
                     if (data.isUnavailable) { bgColor = '#4a4a4a'; textColor = '#f0f0f0'; }
@@ -1792,17 +1880,21 @@
                     let studentsHtml = '';
                     if (data.students && data.students.length > 0) {
                         data.students.forEach((name, idx) => {
-                            studentsHtml += `<span class="student-tag">${name} <span class="cell-btn remove-btn" onclick="event.stopPropagation(); removeDailyStudent('${key}', ${idx})" style="width:14px;height:14px;font-size:0.4rem;border-radius:50%;background:rgba(0,0,0,0.15);">✕</span></span>`;
+                            const removeBtn = canEdit() ? `<span class="cell-btn remove-btn" onclick="event.stopPropagation(); removeDailyStudent('${key}', ${idx})" style="width:14px;height:14px;font-size:0.4rem;border-radius:50%;background:rgba(0,0,0,0.15);">✕</span>` : '';
+                            studentsHtml += `<span class="student-tag">${name} ${removeBtn}</span>`;
                         });
                     }
-                    const addBtn = `<span class="cell-btn add-btn" onclick="event.stopPropagation(); openCellControl('${key}', 'daily')" title="التحكم">➕</span>`;
-                    const exceptionBtn = `<span class="cell-btn" style="background:rgba(52,152,219,0.2);" onclick="event.stopPropagation(); openExceptionForCell('${key}')" title="تعديل اليوم">📝</span>`;
+                    const addBtn = canEdit() ? `<span class="cell-btn add-btn" onclick="event.stopPropagation(); openCellControl('${key}', 'daily')" title="التحكم">➕</span>` : '';
+                    const exceptionBtn = canEdit() ? `<span class="cell-btn" style="background:rgba(52,152,219,0.2);" onclick="event.stopPropagation(); openExceptionForCell('${key}')" title="تعديل اليوم">📝</span>` : '';
+                    const resetBtn = (isFromException && canEdit()) ? `<span class="reset-weekly-btn" onclick="event.stopPropagation(); resetToWeekly('${coachId}', '${currentDate}', ${hIdx})" title="إعادة للجدول الأسبوعي">↩</span>` : '';
+                    const sourceBadge = isFromException ? `<span class="source-badge source-exception">استثناء</span>` : (data.students && data.students.length > 0 ? `<span class="source-badge source-weekly">أسبوعي</span>` : '');
 
-                    td.onclick = function(e) { if (e.target.closest('.cell-btn')) return; openCellControl(key, 'daily'); };
+                    td.onclick = function(e) { if (e.target.closest('.cell-btn') || e.target.closest('.reset-weekly-btn')) return; if (canEdit()) openCellControl(key, 'daily'); };
                     td.innerHTML = `
                         <div class="cell-content">
                             <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1px;">${studentsHtml}</div>
-                            <div class="cell-actions">${addBtn} ${exceptionBtn}</div>
+                            ${sourceBadge}
+                            <div class="cell-actions">${addBtn} ${exceptionBtn} ${resetBtn}</div>
                         </div>
                     `;
                 }
@@ -1810,6 +1902,17 @@
             });
             tbody.appendChild(tr);
         });
+
+        const syncIndicator = document.getElementById('dailySyncIndicator');
+        if (syncIndicator) {
+            if (exceptionCount > 0) {
+                syncIndicator.innerHTML = `<i class="bi bi-pencil-square"></i> ${exceptionCount} تعديل يومي | ${weeklyCount} من الأسبوعي`;
+                syncIndicator.className = 'badge bg-warning p-2';
+            } else {
+                syncIndicator.innerHTML = `<i class="bi bi-arrow-repeat"></i> البيانات من الجدول الأسبوعي`;
+                syncIndicator.className = 'badge bg-info p-2';
+            }
+        }
     }
 
     function getCoachHoursFromTemplate(coachId) {
@@ -1843,13 +1946,15 @@
     function renderWeekly() {
         const select = document.getElementById('weeklyCoachSelect');
         if (select.options.length === 0) {
-            coaches.forEach(c => {
+            const visibleCoachesForWeekly = isCoach() ? coaches.filter(c => c.id === getCoachId()) : coaches;
+            visibleCoachesForWeekly.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
                 opt.textContent = c.name;
                 select.appendChild(opt);
             });
         }
+        if (isCoach()) select.disabled = true; else select.disabled = false;
 
         const coachIdx = parseInt(select.value) || (coaches.length > 0 ? coaches[0].id : 0);
         const thead = document.getElementById('weeklyHead');
@@ -1866,11 +1971,14 @@
         headerRow.appendChild(thFirst);
         hours.forEach((hour, hIdx) => {
             let th = document.createElement('th');
-            th.innerHTML = `${hour} <button class="cell-btn" style="background:rgba(231,76,60,0.2);width:16px;height:16px;font-size:0.5rem;" onclick="deleteWeeklyColumn(${coachIdx}, ${hIdx})" title="حذف">✕</button>`;
+            const delBtn = canEdit() ? ` <button class="cell-btn" style="background:rgba(231,76,60,0.2);width:16px;height:16px;font-size:0.5rem;" onclick="deleteWeeklyColumn(${coachIdx}, ${hIdx})" title="حذف">✕</button>` : '';
+            th.innerHTML = `${hour}${delBtn}`;
             headerRow.appendChild(th);
         });
         let thAdd = document.createElement('th');
-        thAdd.innerHTML = `<button class="cell-btn" style="background:rgba(46,204,113,0.2);width:16px;height:16px;font-size:0.6rem;" onclick="addWeeklyHour(${coachIdx})" title="إضافة">➕</button>`;
+        if (canEdit()) {
+            thAdd.innerHTML = `<button class="cell-btn" style="background:rgba(46,204,113,0.2);width:16px;height:16px;font-size:0.6rem;" onclick="addWeeklyHour(${coachIdx})" title="إضافة">➕</button>`;
+        }
         thAdd.style.background = '#e8f5e9'; thAdd.style.borderRadius = '12px 12px 0 0';
         headerRow.appendChild(thAdd);
         thead.appendChild(headerRow);
@@ -1878,7 +1986,8 @@
         days.forEach((day, dIdx) => {
             const tr = document.createElement('tr');
             const tdDay = document.createElement('td');
-            tdDay.innerHTML = `${day} <button class="cell-btn" style="background:rgba(231,76,60,0.2);width:16px;height:16px;font-size:0.5rem;" onclick="deleteWeeklyRow(${coachIdx}, ${dIdx})" title="حذف">✕</button>`;
+            const delRowBtn = canEdit() ? ` <button class="cell-btn" style="background:rgba(231,76,60,0.2);width:16px;height:16px;font-size:0.5rem;" onclick="deleteWeeklyRow(${coachIdx}, ${dIdx})" title="حذف">✕</button>` : '';
+            tdDay.innerHTML = `${day}${delRowBtn}`;
             tdDay.style.backgroundColor = '#0a2e4a';
             tdDay.style.color = '#fff';
             tdDay.style.borderRadius = '12px 0 0 12px';
@@ -1898,12 +2007,13 @@
                 let studentsHtml = '';
                 if (data.students && data.students.length > 0) {
                     data.students.forEach((name, idx) => {
-                        studentsHtml += `<span class="student-tag">${name} <span class="cell-btn remove-btn" onclick="event.stopPropagation(); removeWeeklyStudent(${coachIdx}, ${dIdx}, ${hIdx}, ${idx})" style="width:14px;height:14px;font-size:0.4rem;border-radius:50%;background:rgba(0,0,0,0.15);">✕</span></span>`;
+                        const wRemoveBtn = canEdit() ? ` <span class="cell-btn remove-btn" onclick="event.stopPropagation(); removeWeeklyStudent(${coachIdx}, ${dIdx}, ${hIdx}, ${idx})" style="width:14px;height:14px;font-size:0.4rem;border-radius:50%;background:rgba(0,0,0,0.15);">✕</span>` : '';
+                        studentsHtml += `<span class="student-tag">${name}${wRemoveBtn}</span>`;
                     });
                 }
-                const addBtn = `<span class="cell-btn add-btn" onclick="event.stopPropagation(); openCellControlWeekly(${coachIdx}, ${dIdx}, ${hIdx})" title="التحكم">➕</span>`;
+                const addBtn = canEdit() ? `<span class="cell-btn add-btn" onclick="event.stopPropagation(); openCellControlWeekly(${coachIdx}, ${dIdx}, ${hIdx})" title="التحكم">➕</span>` : '';
 
-                td.onclick = function(e) { if (e.target.closest('.cell-btn')) return; openCellControlWeekly(coachIdx, dIdx, hIdx); };
+                td.onclick = function(e) { if (e.target.closest('.cell-btn')) return; if (canEdit()) openCellControlWeekly(coachIdx, dIdx, hIdx); };
                 td.innerHTML = `
                     <div class="cell-content">
                         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1px;">${studentsHtml}</div>
@@ -2024,6 +2134,7 @@
     }
 
     window.openCellControl = function(cellKey, view) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية التعديل', 'danger'); return; }
         populateCellStudentSelect();
         document.getElementById('cellTargetKey').value = cellKey;
         document.getElementById('cellTargetView').value = view || 'daily';
@@ -2058,6 +2169,7 @@
     };
 
     window.openCellControlWeekly = function(coachIdx, dayIdx, hourIdx) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية التعديل', 'danger'); return; }
         populateCellStudentSelect();
         document.getElementById('cellTargetView').value = 'weekly';
         document.getElementById('cellWeeklyCoachIdx').value = coachIdx;
@@ -2161,6 +2273,7 @@
     // 10. دوال الحذف السريع
     // ========================================================================
     window.removeDailyStudent = function(cellKey, index) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الحذف', 'danger'); return; }
         const parts = cellKey.split('_');
         const coachId = parseInt(parts[0]);
         const hourIdx = parseInt(parts[1]);
@@ -2190,7 +2303,17 @@
         showToast('🗑️ تم الحذف', 'info');
     };
 
+    window.resetToWeekly = async function(coachId, date, hourIdx) {
+        coachId = parseInt(coachId);
+        const exceptionKey = `${coachId}_${date}_${hourIdx}`;
+        delete dailyExceptions[exceptionKey];
+        await deleteDailyException(coachId, date, hourIdx.toString());
+        loadAllData();
+        showToast('↩️ تم إعادة الخلية للجدول الأسبوعي', 'success');
+    };
+
     window.removeWeeklyStudent = function(coachIdx, dayIdx, hourIdx, studentIndex) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الحذف', 'danger'); return; }
         const key = `${coachIdx}_${dayIdx}_${hourIdx}`;
         if (weeklyTemplate[key]) {
             const data = weeklyTemplate[key];
@@ -2215,6 +2338,7 @@
     // 11. استثناءات اليوم
     // ========================================================================
     window.openExceptionForCell = function(cellKey) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية التعديل', 'danger'); return; }
         const parts = cellKey.split('_');
         const coachId = parseInt(parts[0]);
         const hourIdx = parseInt(parts[1]);
@@ -2289,6 +2413,7 @@
     };
 
     window.removeException = function(cellKey) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الحذف', 'danger'); return; }
         const parts = cellKey.split('_');
         const coachId = parseInt(parts[0]);
         const hourIdx = parseInt(parts[1]);
@@ -2302,6 +2427,7 @@
     };
 
     window.clearWeeklyTemplate = async function() {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الحذف', 'danger'); return; }
         if (!await showConfirm('⚠️ هل أنت متأكد من مسح كل الجدول الأسبوعي؟ سيتم أرشفته تلقائياً أولاً.')) return;
         const archiveData = { weeklyTemplate: weeklyTemplate, coaches: coaches, timestamp: new Date().toISOString() };
         await saveArchiveToDB('أرشيف الجدول الأسبوعي - ' + getToday(), 'weekly_template', archiveData);
@@ -2316,7 +2442,14 @@
     // 12. تسجيل الحضور
     // ========================================================================
     window.openAttendanceModal = function() {
-        document.getElementById('attendanceDate').value = getToday();
+        const dateInput = document.getElementById('attendanceDate');
+        dateInput.value = getToday();
+        if (isCoach()) {
+            dateInput.disabled = true;
+            dateInput.value = getToday();
+        } else {
+            dateInput.disabled = false;
+        }
         renderAttendanceModal();
         const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
         modal.show();
@@ -2326,7 +2459,9 @@
         const coachFilter = document.getElementById('attendanceCoachFilter');
         const hourFilter = document.getElementById('attendanceHourFilter');
         coachFilter.innerHTML = '<option value="all">الكل</option>';
-        coaches.forEach(c => { coachFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+        const visibleCoachesForAtt = isCoach() ? coaches.filter(c => c.id === getCoachId()) : coaches;
+        visibleCoachesForAtt.forEach(c => { coachFilter.innerHTML += `<option value="${c.id}" ${isCoach() ? 'selected' : ''}>${c.name}</option>`; });
+        if (isCoach()) coachFilter.disabled = true; else coachFilter.disabled = false;
         hourFilter.innerHTML = '<option value="all">الكل</option>';
         const allHoursSet = new Set();
         HOURS.forEach(h => allHoursSet.add(h));
@@ -2385,6 +2520,7 @@
         let filtered = expected;
         if (coachIdx !== 'all') filtered = filtered.filter(e => e.coachId == coachIdx);
         if (hour !== 'all') filtered = filtered.filter(e => e.hour === hour);
+        if (isCoach() && date !== getToday()) { filtered = []; }
 
         if (filtered.length === 0) {
             listDiv.innerHTML = '<div class="alert alert-light">لا يوجد سباحين متوقعين في هذا اليوم</div>';
@@ -2586,6 +2722,7 @@
     window.filterStudents = function() { renderStudents(); };
 
     window.openAddStudentModal = function() {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الإضافة', 'danger'); return; }
         const coachSelect = document.getElementById('newStudentCoach');
         coachSelect.innerHTML = '';
         coaches.forEach(c => {
@@ -2813,6 +2950,7 @@
     };
 
     window.deleteStudent = async function(id) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الحذف', 'danger'); return; }
         const student = students.find(s => s.id === id);
         if (!student) return;
         let warnings = [];
@@ -2840,13 +2978,29 @@
     function renderTransactions() {
         const filter = document.getElementById('transactionFilter').value;
         const monthFilter = document.getElementById('accountsMonthFilter').value;
+        const categoryFilter = document.getElementById('transactionCategoryFilter') ? document.getElementById('transactionCategoryFilter').value : 'all';
+        const dateFrom = document.getElementById('transactionDateFrom') ? document.getElementById('transactionDateFrom').value : '';
+        const dateTo = document.getElementById('transactionDateTo') ? document.getElementById('transactionDateTo').value : '';
         const listDiv = document.getElementById('transactionList');
         listDiv.innerHTML = '';
+
+        const catSelect = document.getElementById('transactionCategoryFilter');
+        if (catSelect && catSelect.options.length <= 1) {
+            const cats = new Set();
+            transactions.forEach(t => { if (t.category) cats.add(t.category); });
+            const customCats = JSON.parse(localStorage.getItem('mg_custom_categories') || '[]');
+            customCats.forEach(c => cats.add(c));
+            cats.forEach(c => { catSelect.innerHTML += `<option value="${c}">${c}</option>`; });
+        }
+
         let filtered = transactions.sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
         if (filter === 'revenue') filtered = filtered.filter(t => t.type === 'revenue');
         else if (filter === 'expense') filtered = filtered.filter(t => t.type === 'expense');
+        if (categoryFilter !== 'all') filtered = filtered.filter(t => t.category === categoryFilter);
+        if (dateFrom) filtered = filtered.filter(t => t.transaction_date >= dateFrom);
+        if (dateTo) filtered = filtered.filter(t => t.transaction_date <= dateTo);
 
-        if (monthFilter === 'current') {
+        if (monthFilter === 'current' && !dateFrom && !dateTo) {
             const now = new Date();
             const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             filtered = filtered.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix));
@@ -3042,8 +3196,8 @@
                 <td class="fw-bold">${formatCurrency(totalDue)}</td>
                 <td class="fw-bold text-primary">${formatCurrency(expected)}</td>
                 <td>
-                    <button class="btn btn-sm btn-warning" onclick="openEditCoachModal(${coach.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCoach(${coach.id})" title="حذف"><i class="bi bi-trash"></i></button>
+                    <button class="btn-phase5 btn-phase5-warning btn-phase5-sm" onclick="openEditCoachModal(${coach.id})" title="تعديل"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-phase5 btn-phase5-danger btn-phase5-sm" onclick="deleteCoach(${coach.id})" title="حذف"><i class="bi bi-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -3111,6 +3265,7 @@
     }
 
     window.openAddCoachModal = function() {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الإضافة', 'danger'); return; }
         document.getElementById('coachModalTitle').innerHTML = '<i class="bi bi-person-plus text-success"></i> إضافة مدرب';
         document.getElementById('editCoachId').value = '';
         document.getElementById('coachName').value = '';
@@ -3166,6 +3321,7 @@
     };
 
     window.deleteCoach = async function(id) {
+        if (!canEdit()) { showToast('⛔ لا تملك صلاحية الحذف', 'danger'); return; }
         const coach = coaches.find(c => c.id === id);
         if (!coach) return;
         let warnings = [];
@@ -3535,13 +3691,16 @@
 
         if (coachFilterSelect.options.length <= 1) {
             coachFilterSelect.innerHTML = '<option value="all">كل المدربين</option>';
-            coaches.forEach(c => {
+            const visibleForAccounting = isCoach() ? coaches.filter(c => c.id === getCoachId()) : coaches;
+            visibleForAccounting.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
                 opt.textContent = c.name;
+                opt.selected = isCoach();
                 coachFilterSelect.appendChild(opt);
             });
         }
+        if (isCoach()) coachFilterSelect.disabled = true; else coachFilterSelect.disabled = false;
 
         const selectedMonth = monthSelect.value;
         const selectedCoach = coachFilterSelect.value;
@@ -3824,6 +3983,10 @@
     // 18. دوال التبويبات والتحكم في التاريخ
     // ========================================================================
     window.switchView = function(view) {
+        if (isCoach() && ['accounts', 'coaches', 'coachAccounting', 'users', 'students'].includes(view)) {
+            showToast('⛔ لا تملك صلاحية الوصول لهذه الصفحة', 'danger');
+            return;
+        }
         document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         const map = {
@@ -4565,6 +4728,85 @@
         profitEl.textContent = formatCurrency(profit);
         profitEl.style.color = profit >= 0 ? '#27ae60' : '#e74c3c';
     };
+
+    // ========================================================================
+    // Phase 5 - البحث العالمي السريع
+    // ========================================================================
+    window.handleGlobalSearch = function() {
+        const term = document.getElementById('globalSearchInput').value.trim().toLowerCase();
+        const resultsDiv = document.getElementById('globalSearchResults');
+        if (!term || term.length < 2) { resultsDiv.classList.remove('show'); return; }
+
+        let results = [];
+
+        students.filter(s => s.name.toLowerCase().includes(term)).slice(0, 5).forEach(s => {
+            results.push({ type: 'student', name: s.name, label: 'سباح', action: `switchView('students'); document.getElementById('studentSearchInput').value='${s.name}'; renderStudents();` });
+        });
+
+        if (canViewOtherCoaches()) {
+            coaches.filter(c => c.name.toLowerCase().includes(term)).slice(0, 3).forEach(c => {
+                results.push({ type: 'coach', name: c.name, label: 'مدرب', action: `switchView('coaches')` });
+            });
+        }
+
+        if (canViewFinance()) {
+            transactions.filter(t => (t.description || '').toLowerCase().includes(term) || (t.category || '').toLowerCase().includes(term)).slice(0, 3).forEach(t => {
+                results.push({ type: 'transaction', name: `${t.description || t.category} - ${formatCurrency(t.amount)}`, label: 'معاملة', action: `switchView('accounts')` });
+            });
+        }
+
+        if (results.length === 0) { resultsDiv.innerHTML = '<div class="search-result-item" style="color:#999;">لا توجد نتائج</div>'; resultsDiv.classList.add('show'); return; }
+
+        let html = '';
+        results.forEach(r => {
+            const typeClass = r.type === 'student' ? 'search-result-student' : r.type === 'coach' ? 'search-result-coach' : 'search-result-transaction';
+            html += `<div class="search-result-item" onclick="document.getElementById('globalSearchInput').value=''; document.getElementById('globalSearchResults').classList.remove('show'); ${r.action}"><span class="search-result-type ${typeClass}">${r.label}</span>${r.name}</div>`;
+        });
+        resultsDiv.innerHTML = html;
+        resultsDiv.classList.add('show');
+    };
+
+    // ========================================================================
+    // Phase 5 - نسخة احتياطية تلقائية أسبوعية
+    // ========================================================================
+    function autoWeeklyBackup() {
+        try {
+            const lastBackup = localStorage.getItem('mg_last_auto_backup');
+            const now = Date.now();
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (lastBackup && (now - parseInt(lastBackup)) < oneWeek) return;
+
+            const backupData = {
+                timestamp: new Date().toISOString(),
+                students: students,
+                coaches: coaches,
+                transactions: transactions,
+                weeklyTemplate: weeklyTemplate,
+                dailyExceptions: dailyExceptions,
+                attendanceLogs: attendanceLogs,
+                poolCard: poolCard,
+                users: users
+            };
+
+            const json = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MG_Backup_Auto_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            localStorage.setItem('mg_last_auto_backup', now.toString());
+            logActivity('نسخة احتياطية تلقائية', 'backup', 'نسخة أسبوعية تلقائية');
+            showToast('💾 تم إنشاء نسخة احتياطية تلقائية', 'success');
+        } catch (e) {
+            console.error('Auto backup error:', e);
+        }
+    }
+    setTimeout(autoWeeklyBackup, 5000);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
